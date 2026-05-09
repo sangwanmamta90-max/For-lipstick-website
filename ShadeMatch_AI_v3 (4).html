@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShadeMatch AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,700;0,900;1,300;1,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Brand colours — unchanged */
+  --hot:#D4003A;--hot2:#FF1A4F;--accent:#FF6240;--gold:#D4960A;
+  /* Light palette */
+  --bg:#FFFFFF;--bg2:#FDF5F7;--bg3:#FFF0F3;--bg4:#FFF8E8;
+  --ink:#1A0810;--ink2:#2E1020;
+  --muted:#7A6070;--border:#EDD8DF;--border2:#F0E0D0;
+  /* Component colours */
+  --card:#FFFFFF;--card2:#FFF8FA;
+  --glass:rgba(212,0,58,0.04);--glassborder:#EDD0D8;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;font-size:16px;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:var(--bg2);}
+::-webkit-scrollbar-thumb{background:var(--hot);border-radius:4px;}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;width:100%;z-index:1000;padding:1rem 2.5rem;display:flex;justify-content:space-between;align-items:center;transition:all 0.4s;}
+nav.solid{background:rgba(255,255,255,0.96);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);}
+.logo{font-family:'Fraunces',serif;font-size:1.3rem;font-weight:900;color:var(--ink);letter-spacing:-0.02em;}
+.logo em{color:var(--hot);font-style:italic;}
+.nav-r{display:flex;gap:0.5rem;align-items:center;}
+.npill{font-size:0.72rem;font-weight:500;padding:0.45rem 1rem;border-radius:100px;border:1px solid var(--border);color:var(--muted);background:transparent;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;text-decoration:none;}
+.npill:hover{background:var(--hot);color:#fff;border-color:var(--hot);}
+.npill.active-nav{background:var(--hot);color:#fff;border-color:var(--hot);}
+.mem-pill{display:flex;align-items:center;gap:0.5rem;background:var(--bg3);border:1px solid rgba(212,0,58,0.25);border-radius:100px;padding:0.38rem 0.9rem;font-size:0.7rem;font-weight:600;color:var(--hot);cursor:pointer;transition:all 0.2s;}
+.mem-dot{width:6px;height:6px;border-radius:50%;background:var(--hot);animation:mpulse 2s infinite;}
+@keyframes mpulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+
+/* ── STEP PROGRESS BAR ── */
+.flow-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--hot),var(--gold),var(--accent));z-index:2000;transition:width 0.5s ease;width:0%;}
+
+/* ── HERO ── */
+.hero{min-height:100svh;display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:0;position:relative;overflow:hidden;background:var(--bg);}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 65% 75% at 80% 45%,rgba(212,0,58,0.08) 0%,transparent 65%),radial-gradient(ellipse 50% 60% at 15% 75%,rgba(255,200,66,0.07) 0%,transparent 55%),radial-gradient(ellipse 40% 40% at 60% 10%,rgba(255,98,64,0.05) 0%,transparent 50%);pointer-events:none;}
+.hero-grain{position:absolute;inset:0;opacity:0.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");pointer-events:none;}
+/* Decorative blobs */
+.hero::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(212,0,58,0.06) 0%,transparent 70%);top:-100px;right:-100px;pointer-events:none;}
+.hero::after{content:'';position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(245,200,66,0.08) 0%,transparent 70%);bottom:-80px;left:-60px;pointer-events:none;}
+.hero-l{padding:8rem 3rem 4rem 4rem;position:relative;z-index:2;}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:0.5rem;font-size:0.65rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--hot);margin-bottom:1.5rem;background:var(--bg3);padding:0.35rem 0.85rem;border-radius:100px;border:1px solid rgba(212,0,58,0.2);}
+.eyebrow-line{width:20px;height:1.5px;background:var(--hot);}
+h1{font-family:'Fraunces',serif;font-size:clamp(3.2rem,5.5vw,5.5rem);font-weight:900;line-height:0.96;letter-spacing:-0.03em;margin-bottom:1.5rem;color:var(--ink);}
+h1 .italic{font-style:italic;color:var(--hot);}
+h1 .outline{color:transparent;-webkit-text-stroke:2px var(--ink);}
+.hero-sub{font-size:0.95rem;color:var(--muted);line-height:1.85;max-width:400px;margin-bottom:2rem;}
+.hero-ctas{display:flex;gap:0.8rem;flex-wrap:wrap;margin-bottom:3rem;}
+.btn-primary{background:var(--hot);color:#fff;border:none;padding:0.9rem 2rem;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer;transition:all 0.25s;display:inline-flex;align-items:center;gap:0.5rem;box-shadow:0 4px 20px rgba(212,0,58,0.3);}
+.btn-primary:hover{background:var(--hot2);transform:translateY(-2px);box-shadow:0 12px 32px rgba(212,0,58,0.4);}
+.btn-outline{background:transparent;color:var(--ink);border:1.5px solid var(--border);padding:0.9rem 1.8rem;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:500;cursor:pointer;transition:all 0.2s;}
+.btn-outline:hover{border-color:var(--hot);color:var(--hot);}
+.hero-steps{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+.hstep{display:flex;align-items:center;gap:0.45rem;font-size:0.72rem;color:var(--muted);font-weight:500;}
+.hstep-n{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:0.58rem;font-weight:700;color:var(--hot);}
+.hstep-arr{color:var(--border);font-size:0.7rem;}
+/* Hero Right — Live Preview */
+.hero-r{position:relative;height:100svh;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.hero-lip-preview{position:relative;width:340px;height:340px;display:flex;align-items:center;justify-content:center;}
+.hlp-ring{position:absolute;inset:-20px;border-radius:50%;border:1.5px solid rgba(212,0,58,0.12);animation:ringPulse 3s ease-in-out infinite;}
+.hlp-ring2{position:absolute;inset:-40px;border-radius:50%;border:1px solid rgba(212,0,58,0.06);animation:ringPulse 3s ease-in-out infinite 0.8s;}
+@keyframes ringPulse{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.04);opacity:0.5;}}
+#heroLipSvg{width:280px;height:280px;filter:drop-shadow(0 20px 60px rgba(212,0,58,0.25));}
+.hero-shade-orbit{position:absolute;inset:0;}
+.orb-shade{position:absolute;border-radius:50%;cursor:pointer;transition:all 0.3s;}
+.orb-shade:hover{transform:scale(1.3);z-index:10;}
+.hero-welcome{position:absolute;bottom:-60px;left:50%;transform:translateX(-50%);background:#fff;border:1px solid var(--border);border-radius:16px;padding:0.75rem 1.2rem;font-size:0.75rem;white-space:nowrap;display:none;color:var(--muted);box-shadow:0 4px 20px rgba(0,0,0,0.08);}
+.hero-welcome strong{color:var(--hot);}
+/* Floating tags */
+.ftag{position:absolute;background:rgba(255,255,255,0.95);backdrop-filter:blur(8px);border:1px solid var(--border);border-radius:12px;padding:0.5rem 0.9rem;font-size:0.65rem;font-weight:600;display:flex;align-items:center;gap:0.4rem;white-space:nowrap;animation:ftagFloat 4s ease-in-out infinite;box-shadow:0 4px 16px rgba(0,0,0,0.08);color:var(--ink);}
+.ftag-dot{width:8px;height:8px;border-radius:50%;}
+.ft1{top:15%;right:5%;animation-delay:0s;}
+.ft2{bottom:20%;left:2%;animation-delay:1.5s;}
+.ft3{top:55%;right:-5%;animation-delay:0.8s;}
+@keyframes ftagFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+
+/* ── MEMORY BANNER ── */
+.mem-banner{background:linear-gradient(135deg,#FFF0F3,#FFF8E8);border:1px solid rgba(212,0,58,0.15);border-radius:16px;padding:1rem 1.4rem;margin:0 2.5rem 0;display:none;align-items:center;gap:1rem;flex-wrap:wrap;box-shadow:0 4px 16px rgba(212,0,58,0.08);}
+.mb-icon{font-size:1.4rem;}
+.mb-text{flex:1;font-size:0.82rem;color:var(--muted);}
+.mb-text strong{color:var(--ink);}
+.mb-shade{display:flex;align-items:center;gap:0.5rem;}
+.mb-swatch{width:24px;height:24px;border-radius:50%;border:2px solid rgba(255,255,255,0.8);box-shadow:0 2px 8px rgba(0,0,0,0.15);}
+.mb-cta{background:var(--hot);color:#fff;border:none;padding:0.4rem 1rem;border-radius:100px;font-size:0.72rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;white-space:nowrap;box-shadow:0 4px 12px rgba(212,0,58,0.3);}
+.mb-cta:hover{filter:brightness(1.1);}
+
+/* ── SECTION BASE ── */
+.section{padding:5rem 2.5rem;}
+.section-inner{max-width:1200px;margin:0 auto;}
+.stag{display:inline-flex;align-items:center;gap:0.5rem;font-size:0.65rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;padding:0.35rem 0.85rem;border-radius:100px;margin-bottom:1rem;}
+.tag-red{background:var(--bg3);color:var(--hot);border:1px solid rgba(212,0,58,0.2);}
+.tag-gold{background:#FFF8E8;color:#A06800;border:1px solid rgba(212,150,0,0.2);}
+.tag-green{background:#EDFAF5;color:#00875A;border:1px solid rgba(0,180,100,0.2);}
+.tag-purple{background:#F5EDFF;color:#7030C0;border:1px solid rgba(140,60,220,0.2);}
+h2.sh{font-family:'Fraunces',serif;font-size:clamp(2rem,3.5vw,3rem);font-weight:700;line-height:1.05;letter-spacing:-0.02em;margin-bottom:0.75rem;color:var(--ink);}
+.sdesc{font-size:0.88rem;color:var(--muted);line-height:1.8;max-width:500px;}
+
+/* ── STEP 1: SHADE FINDER ── */
+.finder-sec{background:var(--bg2);}
+.finder-layout{display:grid;grid-template-columns:300px 1fr;gap:2.5rem;margin-top:2.5rem;align-items:start;}
+/* Skin selector sidebar */
+.skin-sidebar{background:#fff;border:1.5px solid var(--border);border-radius:24px;padding:1.5rem;position:sticky;top:6rem;box-shadow:0 4px 24px rgba(212,0,58,0.06);}
+.ss-title{font-size:0.65rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem;}
+.skin-btns{display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1.5rem;}
+.skin-btn{display:flex;align-items:center;gap:0.8rem;padding:0.8rem 1rem;border-radius:14px;border:1.5px solid var(--border);background:#fff;cursor:pointer;transition:all 0.2s;text-align:left;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:500;}
+.skin-btn:hover{background:var(--bg3);border-color:rgba(212,0,58,0.25);color:var(--ink);}
+.skin-btn.active{background:var(--bg3);border-color:rgba(212,0,58,0.4);color:var(--ink);font-weight:600;}
+.skin-swatch{width:28px;height:28px;border-radius:50%;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
+.occ-title{font-size:0.65rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:0.75rem;}
+.occ-btns{display:flex;flex-wrap:wrap;gap:0.4rem;}
+.occ-btn{padding:0.35rem 0.8rem;border-radius:100px;border:1.5px solid var(--border);background:#fff;color:var(--muted);font-size:0.72rem;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;}
+.occ-btn:hover{border-color:var(--hot);color:var(--hot);background:var(--bg3);}
+.occ-btn.active{background:var(--hot);border-color:var(--hot);color:#fff;font-weight:600;}
+/* Insight bar */
+.insight-bar{background:linear-gradient(135deg,var(--bg3),#FFF8F0);border-left:3px solid var(--hot);border-radius:0 12px 12px 0;padding:0.75rem 1rem;margin:1.2rem 0 0;font-size:0.75rem;color:var(--muted);line-height:1.65;}
+/* Shade grid */
+.shade-grid-wrap{position:relative;}
+.grid-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;flex-wrap:wrap;gap:0.5rem;}
+.grid-count{font-size:0.75rem;color:var(--muted);font-weight:500;}
+.quiz-toggle{display:flex;align-items:center;gap:0.5rem;background:#fff;border:1.5px solid var(--border);border-radius:100px;padding:0.3rem 0.9rem;font-size:0.72rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all 0.2s;font-family:'DM Sans',sans-serif;}
+.quiz-toggle:hover{border-color:var(--hot);color:var(--hot);background:var(--bg3);}
+.shade-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem;}
+.sc{background:#fff;border:1.5px solid var(--border);border-radius:18px;overflow:hidden;cursor:pointer;transition:all 0.25s;position:relative;box-shadow:0 2px 12px rgba(0,0,0,0.04);}
+.sc:hover{transform:translateY(-6px);border-color:var(--hot);box-shadow:0 16px 40px rgba(212,0,58,0.12);}
+.sc.selected{border-color:var(--hot);box-shadow:0 0 0 3px rgba(212,0,58,0.15);}
+.sc.top-pick::before{content:'★ Best';position:absolute;top:8px;left:8px;background:var(--hot);color:#fff;font-size:0.5rem;font-weight:800;padding:0.15rem 0.5rem;border-radius:100px;text-transform:uppercase;letter-spacing:0.08em;z-index:2;}
+.sc-swatch{height:130px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 40% 30%,#FFF0F5 0%,#F5E0E8 100%);}
+.sc-bullet{width:54px;height:120px;filter:drop-shadow(0 6px 18px rgba(212,0,58,0.2));transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1);}
+.sc:hover .sc-bullet{transform:translateY(-8px) scale(1.06);}
+.sc-pct{position:absolute;bottom:6px;right:6px;background:var(--hot);color:#fff;font-size:0.6rem;font-weight:800;padding:0.15rem 0.5rem;border-radius:100px;font-family:'Fraunces',serif;}
+.sc-body{padding:0.8rem 0.75rem 0.65rem;}
+.sc-name{font-family:'Fraunces',serif;font-size:0.82rem;font-weight:700;color:var(--ink);margin-bottom:0.15rem;}
+.sc-finish{font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;}
+.sc-price{font-size:0.78rem;font-weight:700;color:var(--hot);margin-top:0.3rem;}
+.sc-apply{width:100%;background:linear-gradient(135deg,var(--hot),var(--accent));border:none;color:#fff;padding:0.45rem;border-radius:0 0 16px 16px;font-size:0.7rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:0.3rem;margin-top:0.5rem;}
+.sc-apply:hover{filter:brightness(1.08);}
+
+/* ── QUIZ PANEL ── */
+.quiz-panel{background:#fff;border:1.5px solid var(--border);border-radius:24px;padding:2rem;max-width:640px;margin:0 auto;display:none;box-shadow:0 8px 40px rgba(212,0,58,0.1);}
+.quiz-panel.open{display:block;animation:fadeUp 0.3s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
+.qp-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;}
+.qp-title{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:700;color:var(--ink);}
+.qp-close{background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;}
+.qp-prog{display:flex;gap:0.35rem;margin-bottom:1.5rem;}
+.qp-pd{height:4px;flex:1;border-radius:100px;background:var(--border);transition:all 0.3s;}
+.qp-pd.done{background:rgba(212,0,58,0.3);}
+.qp-pd.active{background:var(--hot);}
+.qp-q{font-size:1rem;font-weight:600;margin-bottom:0.25rem;color:var(--ink);}
+.qp-hint{font-size:0.75rem;color:var(--muted);margin-bottom:1.2rem;}
+.qp-opts{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;}
+.qp-opt{display:flex;align-items:center;gap:0.7rem;padding:0.75rem 0.9rem;border:1.5px solid var(--border);border-radius:12px;cursor:pointer;transition:all 0.2s;background:#fff;font-family:'DM Sans',sans-serif;font-size:0.8rem;font-weight:500;color:var(--muted);text-align:left;}
+.qp-opt:hover{border-color:rgba(212,0,58,0.3);color:var(--ink);background:var(--bg3);}
+.qp-opt.sel{border-color:var(--hot);background:var(--bg3);color:var(--ink);font-weight:600;}
+.qp-odot{width:18px;height:18px;border-radius:50%;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,0.15);}
+.qp-nav{display:flex;justify-content:space-between;align-items:center;margin-top:1.2rem;}
+.qp-back{background:none;border:none;font-size:0.78rem;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;}
+.qp-step{font-size:0.7rem;color:var(--muted);}
+
+/* ── STEP 2: BEFORE/AFTER TRY-ON ── */
+.tryon-sec{background:var(--bg);border-top:1.5px solid var(--border);}
+.tryon-layout{display:grid;grid-template-columns:1fr 420px;gap:3rem;margin-top:2.5rem;align-items:start;}
+/* Before/after box */
+.ba-box{border-radius:28px;overflow:hidden;position:relative;user-select:none;background:#fff;box-shadow:0 8px 40px rgba(212,0,58,0.1),0 2px 8px rgba(0,0,0,0.06);border:1.5px solid var(--border);}
+.ba-face-wrap{height:460px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 40% 30%,#FFF4F7 0%,#FDE8EE 100%);}
+.ba-b,.ba-a{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
+.ba-a{clip-path:inset(0 50% 0 0);transition:clip-path 0.05s;}
+.ba-divider{position:absolute;top:0;bottom:0;left:50%;width:2px;background:var(--hot);z-index:10;cursor:ew-resize;transform:translateX(-50%);}
+.ba-handle{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:42px;height:42px;background:var(--hot);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(212,0,58,0.4);font-size:0.85rem;color:#fff;cursor:ew-resize;}
+.ba-label{position:absolute;top:1rem;font-size:0.62rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:0.3rem 0.75rem;border-radius:100px;z-index:5;}
+.ba-label.before{left:1rem;background:rgba(255,255,255,0.9);color:var(--muted);border:1px solid var(--border);}
+.ba-label.after{right:1rem;background:var(--hot);color:#fff;}
+/* Realistic lip SVG */
+.face-svg{width:280px;height:360px;}
+/* Controls under box */
+.ba-controls{padding:1rem 1.2rem;background:var(--bg2);border-top:1.5px solid var(--border);display:flex;align-items:center;gap:0.8rem;flex-wrap:wrap;}
+.ba-ctrl-lbl{font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);}
+.finish-toggle{display:flex;gap:0.3rem;}
+.ft-btn{padding:0.3rem 0.7rem;border-radius:100px;border:1.5px solid var(--border);background:#fff;color:var(--muted);font-size:0.68rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;}
+.ft-btn.active{background:var(--hot);border-color:var(--hot);color:#fff;}
+/* Compare strip */
+.compare-strip{display:flex;gap:0.5rem;overflow-x:auto;flex:1;scrollbar-width:none;align-items:center;}
+.compare-strip::-webkit-scrollbar{display:none;}
+.cmp-swatch{width:32px;height:32px;border-radius:50%;border:2px solid transparent;cursor:pointer;flex-shrink:0;transition:all 0.2s;position:relative;}
+.cmp-swatch.active{border-color:var(--hot);transform:scale(1.2);box-shadow:0 4px 12px rgba(212,0,58,0.3);}
+/* Panel */
+.ba-panel{display:flex;flex-direction:column;gap:1rem;}
+.panel-card{background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:1.2rem 1.3rem;box-shadow:0 2px 12px rgba(0,0,0,0.04);}
+.pc-title{font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:0.9rem;}
+.shade-info{margin-bottom:0.8rem;}
+.si-name{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:700;color:var(--ink);margin-bottom:0.15rem;}
+.si-meta{font-size:0.72rem;color:var(--muted);}
+.si-why{font-size:0.78rem;color:var(--muted);line-height:1.65;font-style:italic;margin-top:0.4rem;}
+/* Companion section */
+.companion-items{display:flex;flex-direction:column;gap:0.6rem;}
+.comp-item{display:flex;align-items:center;gap:0.7rem;padding:0.65rem 0.8rem;background:var(--bg2);border:1.5px solid var(--border);border-radius:12px;cursor:pointer;transition:all 0.2s;}
+.comp-item:hover{background:var(--bg3);border-color:rgba(212,0,58,0.3);}
+.comp-item.applied{background:var(--bg3);border-color:rgba(212,0,58,0.4);}
+.comp-dot{width:22px;height:22px;border-radius:50%;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
+.comp-info{flex:1;}
+.comp-name{font-size:0.75rem;font-weight:600;color:var(--ink);margin-bottom:0.1rem;}
+.comp-type{font-size:0.62rem;color:var(--muted);}
+.comp-check{font-size:0.9rem;color:var(--hot);opacity:0;}
+.comp-item.applied .comp-check{opacity:1;}
+/* Complete Look button */
+.complete-btn{width:100%;background:linear-gradient(135deg,var(--hot),var(--accent));border:none;color:#fff;padding:0.9rem;border-radius:14px;font-family:'Fraunces',serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all 0.25s;display:flex;align-items:center;justify-content:center;gap:0.5rem;letter-spacing:-0.01em;box-shadow:0 6px 24px rgba(212,0,58,0.3);}
+.complete-btn:hover{filter:brightness(1.06);transform:translateY(-2px);box-shadow:0 14px 36px rgba(212,0,58,0.4);}
+/* Complete Look result */
+.complete-result{background:linear-gradient(135deg,var(--bg3),#FFF8E8);border:1.5px solid rgba(212,0,58,0.15);border-radius:16px;padding:1.2rem;margin-top:0.8rem;display:none;}
+.cr-title{font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--hot);margin-bottom:0.8rem;}
+.cr-layers{display:flex;flex-direction:column;gap:0.5rem;}
+.cr-layer{display:flex;align-items:center;gap:0.6rem;font-size:0.75rem;color:var(--muted);}
+.cr-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,0.15);}
+.cr-save-btn{width:100%;margin-top:0.8rem;background:#fff;border:1.5px solid var(--border);color:var(--muted);padding:0.55rem;border-radius:100px;font-size:0.75rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:0.4rem;}
+.cr-save-btn:hover{border-color:var(--hot);color:var(--hot);}
+
+/* ── STEP 3: AI ADVISOR ── */
+.ai-sec{background:var(--bg2);border-top:1.5px solid var(--border);}
+.ai-layout{display:grid;grid-template-columns:1fr 360px;gap:2.5rem;margin-top:2.5rem;align-items:start;}
+/* Chat */
+.chat-box{background:#fff;border:1.5px solid var(--border);border-radius:24px;overflow:hidden;box-shadow:0 4px 24px rgba(212,0,58,0.07);}
+.chat-header{padding:1rem 1.3rem;background:linear-gradient(135deg,var(--bg3),var(--bg4));border-bottom:1.5px solid var(--border);display:flex;align-items:center;gap:0.8rem;}
+.chat-av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--hot),var(--accent));display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0;}
+.chat-aname{font-weight:700;font-size:0.82rem;color:var(--ink);}
+.chat-astatus{font-size:0.65rem;color:var(--muted);display:flex;align-items:center;gap:0.3rem;}
+.online-dot{width:6px;height:6px;border-radius:50%;background:#00A85A;animation:opulse 2s infinite;}
+@keyframes opulse{0%,100%{box-shadow:0 0 0 0 rgba(0,168,90,0.4);}50%{box-shadow:0 0 0 4px rgba(0,168,90,0);}}
+.chat-upload-btn{margin-left:auto;background:var(--bg3);border:1px solid rgba(212,0,58,0.2);color:var(--hot);width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.9rem;transition:all 0.2s;flex-shrink:0;}
+.chat-upload-btn:hover{background:var(--hot);color:#fff;}
+.chat-chips{display:flex;gap:0.35rem;padding:0.65rem 1.1rem;flex-wrap:wrap;border-bottom:1.5px solid var(--border);background:var(--bg2);}
+.chip{font-size:0.68rem;font-weight:500;padding:0.3rem 0.7rem;border-radius:100px;border:1.5px solid var(--border);cursor:pointer;background:#fff;font-family:'DM Sans',sans-serif;color:var(--muted);transition:all 0.2s;white-space:nowrap;}
+.chip:hover{border-color:var(--hot);color:var(--hot);background:var(--bg3);}
+.chat-msgs{padding:1rem;height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:0.75rem;scrollbar-width:thin;scrollbar-color:var(--border) transparent;background:#fff;}
+.msg{max-width:85%;animation:msgpop 0.25s ease;}
+@keyframes msgpop{from{opacity:0;transform:scale(0.95) translateY(6px);}to{opacity:1;transform:none;}}
+.msg-ai{align-self:flex-start;}
+.msg-user{align-self:flex-end;}
+.mb{padding:0.65rem 0.9rem;font-size:0.78rem;line-height:1.6;border-radius:4px 18px 18px 18px;}
+.msg-ai .mb{background:var(--bg2);color:var(--ink);border:1px solid var(--border);}
+.msg-user .mb{background:var(--hot);border-radius:18px 4px 18px 18px;color:#fff;}
+.mt{font-size:0.58rem;color:var(--muted);margin-top:0.2rem;padding:0 0.3rem;}
+.msg-user .mt{text-align:right;}
+.tbub{display:flex;gap:4px;padding:0.65rem 0.9rem;background:var(--bg2);border:1px solid var(--border);border-radius:4px 18px 18px 18px;width:fit-content;}
+.tbub span{width:5px;height:5px;border-radius:50%;background:var(--muted);animation:bounce 1.2s infinite;}
+.tbub span:nth-child(2){animation-delay:0.2s;}.tbub span:nth-child(3){animation-delay:0.4s;}
+@keyframes bounce{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-5px);}}
+.shade-pills{display:flex;flex-wrap:wrap;gap:0.3rem;margin-top:0.4rem;}
+.shade-pill{display:inline-flex;align-items:center;gap:0.3rem;background:var(--bg3);border:1px solid rgba(212,0,58,0.2);border-radius:100px;padding:0.2rem 0.6rem;font-size:0.62rem;font-weight:600;color:var(--hot);cursor:pointer;transition:all 0.2s;}
+.shade-pill:hover{background:var(--hot);color:#fff;}
+.sp-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.chat-img-preview{display:none;padding:0.5rem 1rem;border-bottom:1.5px solid var(--border);align-items:center;gap:0.7rem;background:var(--bg2);}
+.img-thumb{width:42px;height:42px;object-fit:cover;border-radius:8px;border:1.5px solid var(--border);}
+.img-clear{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;}
+.chat-input-row{display:flex;gap:0.5rem;padding:0.8rem 1rem;border-top:1.5px solid var(--border);background:var(--bg2);}
+.chat-file-btn{background:#fff;border:1.5px solid var(--border);color:var(--muted);width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.9rem;flex-shrink:0;transition:all 0.2s;}
+.chat-file-btn:hover{border-color:var(--hot);color:var(--hot);}
+.chat-input{flex:1;background:#fff;border:1.5px solid var(--border);border-radius:100px;padding:0.55rem 1rem;font-size:0.78rem;font-family:'DM Sans',sans-serif;color:var(--ink);outline:none;transition:border-color 0.2s;}
+.chat-input:focus{border-color:var(--hot);}
+.chat-input::placeholder{color:var(--muted);}
+.chat-send{background:var(--hot);border:none;color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:0.9rem;transition:all 0.2s;flex-shrink:0;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(212,0,58,0.3);}
+.chat-send:hover{background:var(--hot2);}
+.chat-send:disabled{opacity:0.3;cursor:not-allowed;}
+/* AI side panel */
+.ai-side{display:flex;flex-direction:column;gap:1rem;}
+.context-card{background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:1.1rem 1.2rem;box-shadow:0 2px 12px rgba(0,0,0,0.04);}
+.cc-title{font-size:0.62rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:0.8rem;}
+.ctx-row{display:flex;align-items:center;justify-content:space-between;padding:0.35rem 0;border-bottom:1px solid var(--border);}
+.ctx-row:last-child{border-bottom:none;}
+.ctx-k{font-size:0.7rem;color:var(--muted);}
+.ctx-v{font-size:0.72rem;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:0.4rem;}
+.ctx-swatch{width:12px;height:12px;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.2);}
+/* Outfit section */
+.outfit-zone{background:var(--bg2);border:2px dashed var(--border);border-radius:16px;padding:1.5rem;text-align:center;cursor:pointer;transition:all 0.2s;}
+.outfit-zone:hover{border-color:var(--hot);background:var(--bg3);}
+.oz-icon{font-size:2rem;margin-bottom:0.6rem;}
+.oz-title{font-size:0.8rem;font-weight:600;color:var(--ink);margin-bottom:0.3rem;}
+.oz-desc{font-size:0.68rem;color:var(--muted);line-height:1.6;}
+.outfit-result{display:none;margin-top:0.8rem;}
+/* Outfit color picker */
+.color-palette{display:grid;grid-template-columns:repeat(6,1fr);gap:0.4rem;margin-top:0.8rem;}
+.color-swatch-pick{height:28px;border-radius:8px;cursor:pointer;border:2px solid transparent;transition:all 0.2s;box-shadow:0 2px 6px rgba(0,0,0,0.15);}
+.color-swatch-pick:hover{transform:scale(1.1);}
+.color-swatch-pick.selected{border-color:var(--hot);transform:scale(1.15);box-shadow:0 4px 12px rgba(212,0,58,0.3);}
+
+/* ── STEP 4: FACE ANALYSIS ── */
+.analysis-sec{background:var(--bg2);border-top:1.5px solid var(--border);}
+.analysis-layout{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:start;margin-top:2.5rem;}
+.upload-box{background:#fff;border:2px dashed var(--border);border-radius:24px;padding:2.5rem;text-align:center;cursor:pointer;transition:all 0.3s;position:relative;overflow:hidden;box-shadow:0 4px 24px rgba(212,0,58,0.06);}
+.upload-box:hover,.upload-box.active{border-color:rgba(212,0,58,0.4);box-shadow:0 0 0 4px rgba(212,0,58,0.08);}
+.upload-box input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.ub-icon{width:56px;height:56px;background:linear-gradient(135deg,var(--bg3),#FFE8D0);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.6rem;box-shadow:0 4px 16px rgba(212,0,58,0.1);}
+.ub-title{font-family:'Fraunces',serif;font-size:1.05rem;font-weight:700;color:var(--ink);margin-bottom:0.3rem;}
+.ub-hint{font-size:0.75rem;color:var(--muted);line-height:1.6;}
+.ub-or{font-size:0.7rem;color:var(--muted);margin:0.8rem 0;opacity:0.5;}
+.ub-btn{background:var(--hot);color:#fff;border:none;padding:0.6rem 1.4rem;border-radius:100px;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;box-shadow:0 4px 16px rgba(212,0,58,0.25);}
+.ub-btn:hover{filter:brightness(1.1);transform:translateY(-1px);}
+/* Scan overlay */
+.scan-ov{position:absolute;inset:0;background:rgba(255,255,255,0.97);backdrop-filter:blur(8px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2rem;opacity:0;pointer-events:none;transition:opacity 0.3s;border-radius:22px;}
+.scan-ov.show{opacity:1;pointer-events:all;}
+.scan-ring{width:72px;height:72px;border-radius:50%;border:3px solid var(--border);border-top-color:var(--hot);border-right-color:var(--gold);animation:spin 0.9s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.scan-txt{font-size:0.8rem;font-weight:600;color:var(--muted);letter-spacing:0.05em;transition:opacity 0.25s;}
+.scan-track{width:180px;height:3px;background:var(--border);border-radius:100px;overflow:hidden;}
+.scan-fill{height:100%;background:linear-gradient(90deg,var(--hot),var(--gold));width:0%;transition:width 0.6s ease;}
+/* Analysis steps */
+.az-steps{display:flex;justify-content:center;gap:1rem;margin-bottom:2rem;flex-wrap:wrap;}
+.az-step{display:flex;align-items:center;gap:0.5rem;font-size:0.72rem;font-weight:600;padding:0.45rem 1rem 0.45rem 0.6rem;border-radius:100px;border:1.5px solid var(--border);color:var(--muted);transition:all 0.3s;background:#fff;}
+.az-step.active{background:var(--bg3);border-color:rgba(212,0,58,0.3);color:var(--hot);}
+.az-step.done{background:#EDFAF5;border-color:rgba(0,168,90,0.25);color:#007A50;}
+.az-step-n{width:22px;height:22px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:800;color:var(--muted);}
+.az-step.active .az-step-n{background:var(--hot);color:#fff;}
+.az-step.done .az-step-n{background:#007A50;color:#fff;}
+/* Results */
+.az-result{display:none;}
+.az-match-big{text-align:center;padding:1.5rem 0 1rem;}
+.az-pct{font-family:'Fraunces',serif;font-size:4.5rem;font-weight:900;background:linear-gradient(135deg,var(--hot),var(--accent),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;}
+.az-lbl{font-size:0.65rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-top:0.4rem;}
+.az-insight{font-size:0.78rem;color:var(--muted);line-height:1.7;padding:0.75rem 1rem;background:linear-gradient(135deg,var(--bg3),#FFF8E8);border-left:3px solid var(--hot);border-radius:0 12px 12px 0;margin:0.8rem 0;}
+.az-profile{background:#fff;border:1.5px solid var(--border);border-radius:16px;padding:1rem 1.2rem;margin-bottom:0.8rem;box-shadow:0 2px 12px rgba(0,0,0,0.04);}
+.az-row{display:flex;justify-content:space-between;align-items:center;padding:0.35rem 0;border-bottom:1px solid var(--border);}
+.az-row:last-child{border-bottom:none;}
+.az-k{font-size:0.7rem;color:var(--muted);}
+.az-v{font-size:0.75rem;font-weight:700;color:var(--ink);}
+.az-shades{display:grid;grid-template-columns:repeat(5,1fr);gap:0.5rem;margin-top:0.8rem;}
+.az-shade{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:0.6rem 0.4rem;display:flex;flex-direction:column;align-items:center;gap:0.35rem;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
+.az-shade:hover{transform:translateY(-5px);border-color:rgba(212,0,58,0.3);box-shadow:0 8px 24px rgba(212,0,58,0.1);}
+.az-shade.top{border-color:var(--gold);background:linear-gradient(135deg,#FFFBEE,#FFF5D0);}
+.az-sw{width:38px;height:38px;border-radius:50%;box-shadow:0 2px 10px rgba(0,0,0,0.2);}
+.az-shade.top .az-sw{width:46px;height:46px;box-shadow:0 4px 16px rgba(212,150,0,0.3);}
+.az-sn{font-size:0.55rem;font-weight:700;color:var(--muted);text-align:center;max-width:50px;line-height:1.3;}
+.az-sp{font-family:'Fraunces',serif;font-size:0.68rem;font-weight:700;color:var(--hot);}
+.az-bar{width:100%;height:3px;background:var(--border);border-radius:100px;overflow:hidden;}
+.az-fill{height:100%;background:linear-gradient(90deg,var(--hot),var(--accent));width:0%;transition:width 1s ease;}
+.az-actions{display:flex;gap:0.6rem;margin-top:1rem;}
+.az-act-btn{flex:1;padding:0.65rem;border-radius:100px;font-size:0.75rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:0.35rem;}
+.az-act-primary{background:var(--hot);border:none;color:#fff;box-shadow:0 4px 16px rgba(212,0,58,0.25);}
+.az-act-primary:hover{filter:brightness(1.08);transform:translateY(-1px);}
+.az-act-secondary{background:#fff;border:1.5px solid var(--border);color:var(--muted);}
+.az-act-secondary:hover{border-color:var(--hot);color:var(--hot);}
+
+/* ── BEAUTY MEMORY ── */
+.memory-sec{background:var(--bg);border-top:1.5px solid var(--border);padding:5rem 2.5rem;}
+.mem-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;margin-top:2rem;}
+.mem-card{background:#fff;border:1.5px solid var(--border);border-radius:18px;padding:1.1rem;cursor:pointer;transition:all 0.25s;position:relative;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.04);}
+.mem-card:hover{transform:translateY(-5px);border-color:rgba(212,0,58,0.3);box-shadow:0 12px 32px rgba(212,0,58,0.1);}
+.mem-card-swatch{height:90px;border-radius:12px;margin-bottom:0.8rem;position:relative;overflow:hidden;background:radial-gradient(ellipse at 40% 30%,#FFF0F5 0%,#F5E0E8 100%);display:flex;align-items:center;justify-content:center;}
+.mem-date{font-size:0.6rem;color:var(--muted);margin-bottom:0.3rem;}
+.mem-shade-name{font-family:'Fraunces',serif;font-size:0.9rem;font-weight:700;color:var(--ink);margin-bottom:0.15rem;}
+.mem-meta{font-size:0.65rem;color:var(--muted);}
+.mem-apply{position:absolute;bottom:0.8rem;right:0.8rem;background:var(--hot);border:none;color:#fff;padding:0.28rem 0.7rem;border-radius:100px;font-size:0.62rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;opacity:0;transition:all 0.2s;box-shadow:0 4px 12px rgba(212,0,58,0.3);}
+.mem-card:hover .mem-apply{opacity:1;}
+.mem-empty{text-align:center;padding:3rem;color:var(--muted);font-size:0.85rem;}
+.mem-empty-icon{font-size:2.5rem;margin-bottom:0.8rem;opacity:0.4;}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:#fff;font-size:0.78rem;font-weight:600;padding:0.75rem 1.5rem;border-radius:100px;z-index:9999;transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1);box-shadow:0 8px 30px rgba(0,0,0,0.2);display:flex;align-items:center;gap:0.5rem;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+/* ── FOOTER ── */
+footer{background:var(--ink);border-top:1.5px solid var(--border);padding:2rem 2.5rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;}
+.fl{font-family:'Fraunces',serif;font-size:1rem;font-weight:900;color:#fff;}
+.fl em{color:var(--hot);font-style:italic;}
+.fr{font-size:0.7rem;color:rgba(255,255,255,0.3);line-height:1.9;text-align:right;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:960px){
+  .hero{grid-template-columns:1fr;min-height:auto;}
+  .hero-r{display:none;}
+  .hero-l{padding:6rem 1.5rem 3rem;}
+  .finder-layout,.tryon-layout,.ai-layout,.analysis-layout{grid-template-columns:1fr;gap:2rem;}
+  .skin-sidebar{position:relative;top:0;}
+  .section{padding:4rem 1.5rem;}
+  nav{padding:1rem 1.5rem;}
+  .nav-r .npill:not(.active-nav){display:none;}
+  h1{font-size:3rem;}
+  .shade-grid{grid-template-columns:repeat(2,1fr);}
+  .az-shades{grid-template-columns:repeat(3,1fr);}
+  .mem-grid{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:500px){
+  .shade-grid{grid-template-columns:1fr 1fr;}
+  .qp-opts{grid-template-columns:1fr;}
+  .occ-btns{gap:0.3rem;}
+  .az-shades{grid-template-columns:repeat(2,1fr);}
+}
+</style>
+</head>
+<body>
+
+<!-- FLOW PROGRESS BAR -->
+<div class="flow-bar" id="flowBar"></div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">✓</div>
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="logo">Shade<em>Match</em></div>
+  <div class="nav-r">
+    <a class="npill" href="#finder">Find Shade</a>
+    <a class="npill" href="#tryon">Try On</a>
+    <a class="npill" href="#advisor">AI Advisor</a>
+    <a class="npill" href="#analysis">Analysis</a>
+    <div class="mem-pill" onclick="scrollTo('#memory')"><span class="mem-dot"></span><span id="memNavLabel">My Looks</span></div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grain"></div>
+  <div class="hero-l">
+    <div class="hero-eyebrow"><span class="eyebrow-line"></span>AI-Powered Beauty</div>
+    <h1>Your exact<br><span class="italic">shade.</span><br><span class="outline">Matched.</span></h1>
+    <p class="hero-sub">One AI that reads your skin tone, learns your taste, and follows you through every step — from finding to wearing.</p>
+    <div class="hero-ctas">
+      <button class="btn-primary" onclick="scrollTo('#finder')">✦ Find My Shade</button>
+      <button class="btn-outline" onclick="scrollTo('#tryon')">👄 Try On Live</button>
+    </div>
+    <div class="hero-steps">
+      <div class="hstep"><div class="hstep-n">1</div>Find Shade</div>
+      <div class="hstep-arr">→</div>
+      <div class="hstep"><div class="hstep-n">2</div>Try On</div>
+      <div class="hstep-arr">→</div>
+      <div class="hstep"><div class="hstep-n">3</div>Ask AI</div>
+      <div class="hstep-arr">→</div>
+      <div class="hstep"><div class="hstep-n">4</div>Complete Look</div>
+      <div class="hstep-arr">→</div>
+      <div class="hstep"><div class="hstep-n">5</div>Save</div>
+    </div>
+  </div>
+  <div class="hero-r">
+    <div class="hero-lip-preview">
+      <div class="hlp-ring"></div>
+      <div class="hlp-ring2"></div>
+      <svg id="heroLipSvg" viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="hlg" cx="50%" cy="40%" r="60%"><stop offset="0%" stop-color="rgba(255,255,255,0.25)"/><stop offset="100%" stop-color="rgba(0,0,0,0)"/></radialGradient>
+          <filter id="blur4"><feGaussianBlur stdDeviation="4"/></filter>
+        </defs>
+        <ellipse cx="140" cy="140" rx="130" ry="130" fill="#FFF0F5"/>
+        <!-- Shadow under lip -->
+        <ellipse cx="140" cy="178" rx="72" ry="12" fill="rgba(0,0,0,0.5)" filter="url(#blur4)"/>
+        <!-- Lower lip -->
+        <path id="heroLipLower" d="M70 148 Q90 190 140 196 Q190 190 210 148 Q195 170 140 174 Q85 170 70 148Z" fill="#D4003A"/>
+        <!-- Upper lip -->
+        <path id="heroLipUpper" d="M70 148 Q85 136 110 140 Q125 143 140 138 Q155 143 170 140 Q195 136 210 148 Q195 142 140 145 Q85 142 70 148Z" fill="#C0002E"/>
+        <!-- Cupid bow detail -->
+        <path d="M110 140 Q125 133 140 138 Q155 133 170 140" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="1"/>
+        <!-- Gloss layer -->
+        <ellipse id="heroGloss1" cx="118" cy="152" rx="20" ry="8" fill="url(#hlg)" opacity="0.6" transform="rotate(-8 118 152)"/>
+        <ellipse id="heroGloss2" cx="162" cy="152" rx="14" ry="6" fill="url(#hlg)" opacity="0.4" transform="rotate(8 162 152)"/>
+        <!-- Liner layer -->
+        <path id="heroLiner" d="M70 148 Q85 136 110 140 Q125 143 140 138 Q155 143 170 140 Q195 136 210 148 Q195 190 140 197 Q85 190 70 148Z" fill="none" stroke="transparent" stroke-width="3"/>
+      </svg>
+      <div class="hero-shade-orbit" id="heroOrbit"></div>
+    </div>
+    <div class="ftag ft1" id="heroTag1"><div class="ftag-dot" style="background:#D4003A"></div>Wine Not — 96%</div>
+    <div class="ftag ft2" id="heroTag2"><div class="ftag-dot" style="background:#C05838"></div>Terracotta — 93%</div>
+    <div class="ftag ft3" id="heroTag3"><div class="ftag-dot" style="background:#480818"></div>Black Cherry — 94%</div>
+    <div class="hero-welcome" id="heroWelcome"></div>
+  </div>
+</section>
+
+<!-- MEMORY BANNER -->
+<div class="mem-banner" id="memBanner">
+  <div class="mb-icon">✨</div>
+  <div class="mb-text" id="mbText">Welcome back! Your saved look is ready.</div>
+  <div class="mb-shade"><div class="mb-swatch" id="mbSwatch"></div><span id="mbShadeName" style="font-size:0.75rem;font-weight:600;color:var(--ink);"></span></div>
+  <button class="mb-cta" onclick="restoreMemory()">Apply It →</button>
+  <button style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;" onclick="document.getElementById('memBanner').style.display='none'">✕</button>
+</div>
+
+<!-- ══════════════════════════════════════
+     STEP 1: SHADE FINDER
+══════════════════════════════════════ -->
+<section class="section finder-sec" id="finder">
+  <div class="section-inner">
+    <div style="text-align:center;margin-bottom:0.5rem;"><div class="stag tag-red" style="display:inline-flex;">✦ Step 1 — Shade Finder</div></div>
+    <h2 class="sh" style="text-align:center;">Find your exact shade.</h2>
+    <p class="sdesc" style="margin:0 auto;text-align:center;">Filter by skin tone &amp; occasion. Quiz refines results without restarting.</p>
+    <div class="finder-layout">
+      <!-- Sidebar -->
+      <div class="skin-sidebar">
+        <div class="ss-title">Skin Tone</div>
+        <div class="skin-btns" id="skinBtns">
+          <button class="skin-btn active" data-tone="fair" onclick="setSkin('fair',this)"><div class="skin-swatch" style="background:#F5D5C0;"></div>🌸 Fair / Light</button>
+          <button class="skin-btn" data-tone="wheat" onclick="setSkin('wheat',this)"><div class="skin-swatch" style="background:#D4A574;"></div>🌾 Wheatish</button>
+          <button class="skin-btn" data-tone="dusky" onclick="setSkin('dusky',this)"><div class="skin-swatch" style="background:#A0724A;"></div>🌻 Dusky / Olive</button>
+          <button class="skin-btn" data-tone="deep" onclick="setSkin('deep',this)"><div class="skin-swatch" style="background:#5A3520;"></div>🌑 Deep / Dark</button>
+        </div>
+        <div class="occ-title">Occasion</div>
+        <div class="occ-btns" id="occBtns">
+          <button class="occ-btn active" data-occ="all" onclick="setOcc('all',this)">✨ All</button>
+          <button class="occ-btn" data-occ="bridal" onclick="setOcc('bridal',this)">💍 Bridal</button>
+          <button class="occ-btn" data-occ="office" onclick="setOcc('office',this)">💼 Office</button>
+          <button class="occ-btn" data-occ="party" onclick="setOcc('party',this)">🎉 Party</button>
+          <button class="occ-btn" data-occ="casual" onclick="setOcc('casual',this)">☀️ Casual</button>
+          <button class="occ-btn" data-occ="date" onclick="setOcc('date',this)">💋 Date</button>
+        </div>
+        <div class="insight-bar" id="insightBar">Select a skin tone to see personalised insight.</div>
+        <button class="quiz-toggle" style="margin-top:1rem;width:100%;justify-content:center;" onclick="toggleQuiz()">📝 Take Quiz to Refine →</button>
+      </div>
+      <!-- Grid -->
+      <div class="shade-grid-wrap">
+        <div class="grid-header">
+          <span class="grid-count" id="gridCount">0 shades</span>
+          <div style="display:flex;gap:0.5rem;align-items:center;">
+            <span style="font-size:0.68rem;color:var(--muted);">Sort:</span>
+            <button class="occ-btn active" onclick="sortGrid('match',this)">% Match</button>
+            <button class="occ-btn" onclick="sortGrid('price',this)">Price</button>
+          </div>
+        </div>
+        <!-- Quiz panel (inline) -->
+        <div class="quiz-panel" id="quizPanel">
+          <div class="qp-header"><span class="qp-title">Refine Your Results</span><button class="qp-close" onclick="toggleQuiz()">✕</button></div>
+          <div class="qp-prog" id="qpProg"></div>
+          <div id="qpBody"></div>
+          <div class="qp-nav"><button class="qp-back" id="qpBack" onclick="qBack()">← Back</button><span class="qp-step" id="qpStep"></span></div>
+        </div>
+        <div class="shade-grid" id="shadeGrid"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     STEP 2: BEFORE / AFTER TRY-ON
+══════════════════════════════════════ -->
+<section class="section tryon-sec" id="tryon">
+  <div class="section-inner">
+    <div style="text-align:center;margin-bottom:0.5rem;"><div class="stag tag-red" style="display:inline-flex;">✦ Step 2 — Virtual Try-On</div></div>
+    <h2 class="sh" style="text-align:center;">See it on your lips.</h2>
+    <p class="sdesc" style="margin:0 auto;text-align:center;">Drag the slider. Toggle matte/gloss. Compare up to 6 shades side by side.</p>
+    <div class="tryon-layout">
+      <!-- Before/After -->
+      <div>
+        <div class="ba-box" id="baBox">
+          <div class="ba-face-wrap" id="baFaceWrap">
+            <div class="ba-b">
+              <!-- Before face (bare lips) -->
+              <svg class="face-svg" viewBox="0 0 280 360" xmlns="http://www.w3.org/2000/svg">
+                <defs><radialGradient id="skinGrad" cx="50%" cy="40%" r="65%"><stop offset="0%" stop-color="#E0B090"/><stop offset="100%" stop-color="#C49070"/></radialGradient></defs>
+                <!-- Head -->
+                <ellipse cx="140" cy="175" rx="95" ry="118" fill="url(#skinGrad)"/>
+                <ellipse cx="140" cy="85" rx="88" ry="78" fill="#D4A882"/>
+                <!-- Neck -->
+                <rect x="110" y="272" width="60" height="80" rx="8" fill="#C8986A"/>
+                <!-- Jaw smooth -->
+                <path d="M52 160 Q48 220 70 258 Q95 285 140 292 Q185 285 210 258 Q232 220 228 160" fill="#D4A882"/>
+                <!-- Brow bones -->
+                <ellipse cx="100" cy="148" rx="20" ry="8" fill="rgba(0,0,0,0.06)"/>
+                <ellipse cx="180" cy="148" rx="20" ry="8" fill="rgba(0,0,0,0.06)"/>
+                <!-- Eyes -->
+                <path d="M82 150 Q100 140 118 150 Q100 162 82 150Z" fill="#2A1810"/>
+                <path d="M162 150 Q180 140 198 150 Q180 162 162 150Z" fill="#2A1810"/>
+                <circle cx="100" cy="150" r="6" fill="#1A0C08"/><circle cx="180" cy="150" r="6" fill="#1A0C08"/>
+                <circle cx="102" cy="148" r="2" fill="rgba(255,255,255,0.7)"/><circle cx="182" cy="148" r="2" fill="rgba(255,255,255,0.7)"/>
+                <!-- Lashes -->
+                <path d="M82 148 Q100 136 118 148" stroke="#1A0C08" stroke-width="1.5" fill="none"/>
+                <path d="M162 148 Q180 136 198 148" stroke="#1A0C08" stroke-width="1.5" fill="none"/>
+                <!-- Nose -->
+                <ellipse cx="140" cy="195" rx="9" ry="7" fill="rgba(0,0,0,0.08)"/>
+                <circle cx="132" cy="198" r="4" fill="rgba(0,0,0,0.1)"/><circle cx="148" cy="198" r="4" fill="rgba(0,0,0,0.1)"/>
+                <!-- Bare lips -->
+                <path d="M105 225 Q122 218 140 222 Q158 218 175 225 Q165 242 140 246 Q115 242 105 225Z" fill="#C4806A"/>
+                <path d="M105 225 Q122 215 140 220 Q158 215 175 225" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="1"/>
+              </svg>
+            </div>
+            <div class="ba-a" id="baAfter">
+              <!-- After face (with lipstick) -->
+              <svg class="face-svg" viewBox="0 0 280 360" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <radialGradient id="skinGrad2" cx="50%" cy="40%" r="65%"><stop offset="0%" stop-color="#E0B090"/><stop offset="100%" stop-color="#C49070"/></radialGradient>
+                  <radialGradient id="lipGloss" cx="35%" cy="30%" r="70%"><stop offset="0%" stop-color="rgba(255,255,255,0.3)"/><stop offset="100%" stop-color="rgba(0,0,0,0)"/></radialGradient>
+                </defs>
+                <ellipse cx="140" cy="175" rx="95" ry="118" fill="url(#skinGrad2)"/>
+                <ellipse cx="140" cy="85" rx="88" ry="78" fill="#D4A882"/>
+                <rect x="110" y="272" width="60" height="80" rx="8" fill="#C8986A"/>
+                <path d="M52 160 Q48 220 70 258 Q95 285 140 292 Q185 285 210 258 Q232 220 228 160" fill="#D4A882"/>
+                <ellipse cx="100" cy="148" rx="20" ry="8" fill="rgba(0,0,0,0.06)"/>
+                <ellipse cx="180" cy="148" rx="20" ry="8" fill="rgba(0,0,0,0.06)"/>
+                <path d="M82 150 Q100 140 118 150 Q100 162 82 150Z" fill="#2A1810"/>
+                <path d="M162 150 Q180 140 198 150 Q180 162 162 150Z" fill="#2A1810"/>
+                <circle cx="100" cy="150" r="6" fill="#1A0C08"/><circle cx="180" cy="150" r="6" fill="#1A0C08"/>
+                <circle cx="102" cy="148" r="2" fill="rgba(255,255,255,0.7)"/><circle cx="182" cy="148" r="2" fill="rgba(255,255,255,0.7)"/>
+                <path d="M82 148 Q100 136 118 148" stroke="#1A0C08" stroke-width="1.5" fill="none"/>
+                <path d="M162 148 Q180 136 198 148" stroke="#1A0C08" stroke-width="1.5" fill="none"/>
+                <ellipse cx="140" cy="195" rx="9" ry="7" fill="rgba(0,0,0,0.08)"/>
+                <circle cx="132" cy="198" r="4" fill="rgba(0,0,0,0.1)"/><circle cx="148" cy="198" r="4" fill="rgba(0,0,0,0.1)"/>
+                <!-- Lipliner stroke -->
+                <path id="baLiner" d="M103 224 Q122 215 140 219 Q158 215 177 224 Q166 244 140 248 Q114 244 103 224Z" fill="none" stroke="transparent" stroke-width="3.5" stroke-linejoin="round"/>
+                <!-- Lipstick fill -->
+                <path id="baLip" d="M106 225 Q122 217 140 221 Q158 217 174 225 Q164 243 140 247 Q116 243 106 225Z" fill="#D4003A"/>
+                <!-- Cupid's bow -->
+                <path id="baBow" d="M106 225 Q122 217 140 222 Q158 217 174 225" fill="none" stroke="rgba(0,0,0,0.15)" stroke-width="1"/>
+                <!-- Gloss highlights -->
+                <ellipse id="baGloss1" cx="126" cy="230" rx="14" ry="5" fill="url(#lipGloss)" opacity="0.7" transform="rotate(-6 126 230)"/>
+                <ellipse id="baGloss2" cx="155" cy="230" rx="9" ry="4" fill="url(#lipGloss)" opacity="0.5" transform="rotate(6 155 230)"/>
+              </svg>
+            </div>
+            <div class="ba-divider" id="baDivider"><div class="ba-handle">◀▶</div></div>
+            <div class="ba-label before">Before</div>
+            <div class="ba-label after" id="baAfterLabel">After</div>
+          </div>
+          <div class="ba-controls">
+            <span class="ba-ctrl-lbl">Finish</span>
+            <div class="finish-toggle">
+              <button class="ft-btn active" id="ftMatte" onclick="setFinish('matte')">Matte</button>
+              <button class="ft-btn" id="ftGloss" onclick="setFinish('gloss')">Gloss</button>
+              <button class="ft-btn" id="ftSatin" onclick="setFinish('satin')">Satin</button>
+            </div>
+            <span class="ba-ctrl-lbl" style="margin-left:auto;">Compare</span>
+            <div class="compare-strip" id="compareStrip"></div>
+          </div>
+        </div>
+      </div>
+      <!-- Panel -->
+      <div class="ba-panel">
+        <div class="panel-card">
+          <div class="pc-title">Active Shade</div>
+          <div class="shade-info">
+            <div class="si-name" id="siName">Classic Red</div>
+            <div class="si-meta" id="siMeta">Matte Attack · ₹399 · Matte</div>
+            <div class="si-why" id="siWhy">A true red that photographs stunningly — works on every skin tone.</div>
+          </div>
+        </div>
+        <div class="panel-card">
+          <div class="pc-title">Complete the Look</div>
+          <div class="companion-items" id="companionItems"></div>
+        </div>
+        <button class="complete-btn" onclick="completeLook()">✨ Complete My Look</button>
+        <div class="complete-result" id="completeResult">
+          <div class="cr-title">Your Complete Look</div>
+          <div class="cr-layers" id="crLayers"></div>
+          <button class="cr-save-btn" onclick="saveLook()">💾 Save This Look</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     STEP 3: AI ADVISOR
+══════════════════════════════════════ -->
+<section class="section ai-sec" id="advisor">
+  <div class="section-inner">
+    <div style="text-align:center;margin-bottom:0.5rem;"><div class="stag tag-purple" style="display:inline-flex;">✦ Step 3 — AI Advisor</div></div>
+    <h2 class="sh" style="text-align:center;">Ask about your look.</h2>
+    <p class="sdesc" style="margin:0 auto;text-align:center;">AI already knows your shade, skin tone, and outfit. Just ask.</p>
+    <div class="ai-layout">
+      <!-- Chat -->
+      <div class="chat-box">
+        <div class="chat-header">
+          <div class="chat-av">💄</div>
+          <div><div class="chat-aname">Shade Advisor</div><div class="chat-astatus"><span class="online-dot"></span>Online · Knows your profile</div></div>
+          <label class="chat-upload-btn" for="chatFile1" title="Upload outfit">📎<input type="file" id="chatFile1" accept="image/*" style="display:none" onchange="handleOutfitFile(event)"/></label>
+        </div>
+        <div class="chat-chips" id="chatChips">
+          <button class="chip" onclick="sendChip(this)">Best lipliner for this shade?</button>
+          <button class="chip" onclick="sendChip(this)">Add gloss on top?</button>
+          <button class="chip" onclick="sendChip(this)">Match a black dress?</button>
+          <button class="chip" onclick="sendChip(this)">Bridal look tips</button>
+        </div>
+        <div class="chat-msgs" id="chatMsgs">
+          <div class="msg msg-ai"><div class="mb">Hey! 💄 I already know your profile — tell me what you need. Ask about lipliner pairings, gloss options, outfit matching, or upload a photo!</div><div class="mt">now</div></div>
+        </div>
+        <div class="chat-img-preview" id="chatImgPreview">
+          <img class="img-thumb" id="chatImgThumb" src="" alt=""/>
+          <div style="flex:1;font-size:0.72rem;font-weight:600;color:rgba(255,255,255,0.6);">Outfit photo ready</div>
+          <button class="img-clear" onclick="clearChatImg()">✕</button>
+        </div>
+        <div class="chat-input-row">
+          <label class="chat-file-btn" for="chatFile2">📎<input type="file" id="chatFile2" accept="image/*" style="display:none" onchange="handleOutfitFile(event)"/></label>
+          <input class="chat-input" id="chatInput" placeholder="Ask about your look…" onkeydown="if(event.key==='Enter')sendChat()"/>
+          <button class="chat-send" id="chatSendBtn" onclick="sendChat()">↑</button>
+        </div>
+      </div>
+      <!-- Side panel -->
+      <div class="ai-side">
+        <div class="context-card">
+          <div class="cc-title">Your Profile (AI Memory)</div>
+          <div class="ctx-row"><span class="ctx-k">Skin Tone</span><span class="ctx-v" id="ctxTone">—</span></div>
+          <div class="ctx-row"><span class="ctx-k">Undertone</span><span class="ctx-v" id="ctxUndertone">—</span></div>
+          <div class="ctx-row"><span class="ctx-k">Active Shade</span><span class="ctx-v" id="ctxShade"><span class="ctx-swatch" id="ctxSwatch"></span><span id="ctxShadeName">—</span></span></div>
+          <div class="ctx-row"><span class="ctx-k">Finish</span><span class="ctx-v" id="ctxFinish">Matte</span></div>
+          <div class="ctx-row"><span class="ctx-k">Occasion</span><span class="ctx-v" id="ctxOcc">—</span></div>
+          <div class="ctx-row"><span class="ctx-k">Outfit</span><span class="ctx-v" id="ctxOutfit">Not set</span></div>
+        </div>
+        <div class="context-card">
+          <div class="cc-title">Outfit Colour Match</div>
+          <div class="outfit-zone" id="outfitZone" onclick="document.getElementById('outfitFile').click()">
+            <div class="oz-icon">👗</div>
+            <div class="oz-title">Upload Outfit</div>
+            <div class="oz-desc">AI reads colours & style — suggests 3 lip shades</div>
+            <input type="file" id="outfitFile" accept="image/*" style="display:none" onchange="analyseOutfit(event)"/>
+          </div>
+          <div class="oz-desc" style="margin:0.6rem 0 0.4rem;text-align:center;">— or pick outfit colour —</div>
+          <div class="color-palette" id="outfitPalette"></div>
+          <div class="outfit-result" id="outfitResult"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     STEP 4: FACE ANALYSIS
+══════════════════════════════════════ -->
+<section class="section analysis-sec" id="analysis">
+  <div class="section-inner">
+    <div style="text-align:center;margin-bottom:0.5rem;"><div class="stag tag-green" style="display:inline-flex;">✦ Step 4 — Face Analysis</div></div>
+    <h2 class="sh" style="text-align:center;">Upload. Match. Wear.</h2>
+    <p class="sdesc" style="margin:0 auto;text-align:center;">AI reads your skin tone and sends top shades straight to Try-On.</p>
+    <div class="az-steps" id="azSteps">
+      <div class="az-step active" id="azS1"><div class="az-step-n">1</div>Upload selfie</div>
+      <div class="az-step" id="azS2"><div class="az-step-n">2</div>AI analyses tone</div>
+      <div class="az-step" id="azS3"><div class="az-step-n">3</div>Get perfect shades</div>
+    </div>
+    <div class="analysis-layout">
+      <div>
+        <div class="upload-box" id="uploadBox" onclick="runDemo()">
+          <input type="file" accept="image/*" onchange="runDemo()"/>
+          <div class="scan-ov" id="scanOv">
+            <div class="scan-ring"></div>
+            <div class="scan-txt" id="scanTxt">Initialising…</div>
+            <div class="scan-track"><div class="scan-fill" id="scanFill"></div></div>
+          </div>
+          <div class="ub-icon" id="ubIcon">📸</div>
+          <div class="ub-title" id="ubTitle">Drop your selfie here</div>
+          <div class="ub-hint">JPG · PNG · Good natural light<br>or use demo below</div>
+          <div class="ub-or">— or —</div>
+          <button class="ub-btn" onclick="event.stopPropagation();runDemo()">Try Demo Analysis</button>
+        </div>
+      </div>
+      <div class="az-result" id="azResult">
+        <div class="az-match-big">
+          <div class="az-pct" id="azPct">94%</div>
+          <div class="az-lbl">AI Match Found</div>
+        </div>
+        <div class="az-insight" id="azInsight"></div>
+        <div class="az-profile">
+          <div class="az-row"><span class="az-k">Skin Tone</span><span class="az-v" id="azTone">—</span></div>
+          <div class="az-row"><span class="az-k">Undertone</span><span class="az-v" id="azUndertone">—</span></div>
+          <div class="az-row"><span class="az-k">Depth</span><span class="az-v" id="azDepth">—</span></div>
+          <div class="az-row"><span class="az-k">Best Finish</span><span class="az-v" id="azFinish">—</span></div>
+        </div>
+        <div style="font-size:0.62rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.25);margin-bottom:0.5rem;">Top Matches — Click to Try On</div>
+        <div class="az-shades" id="azShades"></div>
+        <div class="az-actions">
+          <button class="az-act-btn az-act-primary" onclick="applyTopAnalysisShade()">👄 Apply Top Shade</button>
+          <button class="az-act-btn az-act-secondary" onclick="chatAboutAnalysis()">💬 Ask AI</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     BEAUTY MEMORY
+══════════════════════════════════════ -->
+<section class="memory-sec" id="memory">
+  <div class="section-inner">
+    <div class="stag tag-gold" style="display:inline-flex;">💾 Beauty Memory</div>
+    <h2 class="sh">Your saved looks.</h2>
+    <p class="sdesc">Every look you save lives here. One click to apply it again.</p>
+    <div class="mem-grid" id="memGrid">
+      <div class="mem-empty"><div class="mem-empty-icon">💄</div><div>Save your first look above!</div></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="fl">Shade<em>Match</em></div>
+  <div class="fr">AI-Powered Shade Matching · Find → Try-On → AI → Complete → Save<br>© 2025 ShadeMatch AI</div>
+</footer>
+
+<script>
+/* ══════════════════════════════════
+   GLOBAL AI MEMORY SYSTEM
+══════════════════════════════════ */
+const MEM = {
+  skinTone: 'fair',
+  undertone: '',
+  selectedShade: null,   // {n,c,f,p,why,t}
+  selectedLiner: null,
+  selectedGloss: null,
+  finish: 'matte',
+  occasion: 'all',
+  outfitColor: null,
+  outfitDesc: '',
+  quizAnswers: {},       // {tone, undertone, finish, occasion}
+  savedLooks: [],
+  analysisProfile: null,
+  // persist helpers
+  save(){try{localStorage.setItem('sm_memory',JSON.stringify({skinTone:this.skinTone,undertone:this.undertone,selectedShade:this.selectedShade,finish:this.finish,occasion:this.occasion,outfitDesc:this.outfitDesc,savedLooks:this.savedLooks,quizAnswers:this.quizAnswers}))}catch(e){}},
+  load(){try{const d=JSON.parse(localStorage.getItem('sm_memory')||'{}');if(d.skinTone)this.skinTone=d.skinTone;if(d.undertone)this.undertone=d.undertone;if(d.selectedShade)this.selectedShade=d.selectedShade;if(d.finish)this.finish=d.finish;if(d.occasion)this.occasion=d.occasion;if(d.outfitDesc)this.outfitDesc=d.outfitDesc;if(d.savedLooks)this.savedLooks=d.savedLooks;if(d.quizAnswers)this.quizAnswers=d.quizAnswers;}catch(e){}}
+};
+MEM.load();
+
+/* ── HELPERS ── */
+function scrollTo(id){document.querySelector(id).scrollIntoView({behavior:'smooth'});}
+function fmt(t){return(t||'').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');}
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+function toast(msg,dur=2600){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur);}
+function hexToRgba(hex,a){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return`rgba(${r},${g},${b},${a})`;}
+
+/* ── NAV SCROLL ── */
+window.addEventListener('scroll',()=>{
+  document.getElementById('nav').classList.toggle('solid',scrollY>60);
+  // Flow progress bar
+  const p = Math.min(100,(scrollY/(document.body.scrollHeight-innerHeight))*100);
+  document.getElementById('flowBar').style.width=p+'%';
+});
+
+/* ── HERO ORBIT — colour circles ── */
+const ORBIT_SHADES = [{c:'#D4003A',s:52},{c:'#A84030',s:44},{c:'#802040',s:48},{c:'#C05838',s:40},{c:'#E8A0B8',s:36},{c:'#480818',s:44},{c:'#D04878',s:38},{c:'#C07840',s:42},{c:'#8B1A4A',s:40},{c:'#F0B880',s:36},{c:'#501870',s:44},{c:'#A02870',s:38}];
+const orb = document.getElementById('heroOrbit');
+ORBIT_SHADES.forEach((o,i)=>{
+  const a=(i/ORBIT_SHADES.length)*2*Math.PI,cx=140,cy=140,r=158;
+  const x=cx+r*Math.cos(a)-o.s/2, y=cy+r*Math.sin(a)-o.s/2;
+  const d=document.createElement('div');
+  d.style.cssText=`position:absolute;left:${x}px;top:${y}px;width:${o.s}px;height:${o.s}px;border-radius:50%;background:${o.c};cursor:pointer;transition:transform 0.3s;box-shadow:0 4px 18px rgba(0,0,0,0.18);`;
+  const kname=`ofl${i}`;
+  const ks=document.createElement('style');
+  ks.textContent=`@keyframes ${kname}{0%,100%{transform:translateY(0) scale(1);}50%{transform:translateY(${-7-i%4*3}px) scale(1.04);}}`;
+  d.style.animation=`${kname} ${4+i*0.5}s ease-in-out infinite`;
+  d.addEventListener('mouseenter',()=>{d.style.transform='scale(1.28)';d.style.zIndex='10';d.style.boxShadow=`0 8px 28px ${o.c}88`;});
+  d.addEventListener('mouseleave',()=>{d.style.transform='';d.style.zIndex='';d.style.boxShadow='0 4px 18px rgba(0,0,0,0.18)';});
+  d.onclick=()=>applyShade(SHADES.find(s=>s.c===o.c)||{n:'Shade',c:o.c,f:'Matte',p:'₹399',why:'',t:['all'],o:['all'],m:80,liner:'#802040',gloss:'#D08050'},true);
+  document.head.appendChild(ks);
+  orb.appendChild(d);
+});
+
+/* ── SHADE DATA ── */
+const SHADES=[
+  {n:'Soft Pink Slip',c:'#E8A0B8',f:'Matte',p:'₹499',t:['fair'],o:['all','casual','office','date'],m:96,why:'Cool pink flatters fair undertones perfectly',liner:'#C87090',gloss:'#F0C0B0'},
+  {n:'Cotton Candy',c:'#F0B0C0',f:'Matte',p:'₹399',t:['fair'],o:['all','casual','party'],m:93,why:'Bright berry makes fair skin luminous',liner:'#D890A0',gloss:'#FCCCD0'},
+  {n:'Mauve Dream',c:'#C890A8',f:'Satin',p:'₹549',t:['fair'],o:['all','office','date','bridal'],m:91,why:'Elegant satin mauve for cool undertones',liner:'#A87090',gloss:'#E0B0C0'},
+  {n:'Peachy Pout',c:'#F0C0A0',f:'Glossy',p:'₹449',t:['fair'],o:['all','casual'],m:88,why:'Sun-kissed peach gloss for fair skin',liner:'#D0906A',gloss:'#F8D0B0'},
+  {n:'Rose Ballerina',c:'#D890A8',f:'Matte',p:'₹399',t:['fair'],o:['all','party','date'],m:85,why:'Rosy pink pops on fair skin',liner:'#B87090',gloss:'#EDB0C8'},
+  {n:'Berry Whisper',c:'#A87090',f:'Matte',p:'₹499',t:['fair'],o:['all','bridal','party'],m:82,why:'Berry depth elevates fair drama',liner:'#906070',gloss:'#C898A8'},
+  {n:'Terracotta Queen',c:'#C05838',f:'Matte',p:'₹499',t:['wheat'],o:['all','casual','office','date'],m:95,why:'Earthy warmth that glows on wheatish skin',liner:'#904028',gloss:'#D08050'},
+  {n:'Brick Lane',c:'#A84030',f:'Matte',p:'₹399',t:['wheat'],o:['all','party','bridal','date'],m:93,why:'Brick red made for warm undertones',liner:'#803020',gloss:'#C06040'},
+  {n:'Copper Kiss',c:'#B06030',f:'Satin',p:'₹549',t:['wheat'],o:['all','date','party'],m:90,why:'Metallic warmth elevates wheatish glow',liner:'#804020',gloss:'#D08848'},
+  {n:'Warm Caramel',c:'#C07840',f:'Glossy',p:'₹449',t:['wheat'],o:['all','casual','office'],m:87,why:'Warm nude gloss for effortless days',liner:'#905830',gloss:'#D8A060'},
+  {n:'Rust Bloom',c:'#B84838',f:'Matte',p:'₹399',t:['wheat'],o:['all','party','casual'],m:84,why:'Rust-red is a wheatish skin staple',liner:'#883028',gloss:'#C86040'},
+  {n:'Mocha Rose',c:'#A06068',f:'Matte',p:'₹499',t:['wheat'],o:['all','office','bridal'],m:81,why:'Mauve-brown for sophisticated looks',liner:'#784858',gloss:'#B88090'},
+  {n:'Wine Not',c:'#801030',f:'Matte',p:'₹399',t:['dusky'],o:['all','bridal','date','party'],m:94,why:'Deep wine is iconic on dusky skin',liner:'#600820',gloss:'#A02840'},
+  {n:'Plum Show',c:'#802040',f:'Matte',p:'₹499',t:['dusky'],o:['all','bridal','party'],m:92,why:'Rich plum creates regal drama',liner:'#601030',gloss:'#A03060'},
+  {n:'Oxblood Envy',c:'#901030',f:'Satin',p:'₹549',t:['dusky'],o:['all','bridal','date'],m:89,why:'Oxblood depth stunning on dusky skin',liner:'#700820',gloss:'#B02840'},
+  {n:'Deep Berry',c:'#702048',f:'Matte',p:'₹399',t:['dusky'],o:['all','party','date'],m:86,why:'Berry contrast pops dramatically',liner:'#501038',gloss:'#903060'},
+  {n:'Midnight Rose',c:'#601838',f:'Matte',p:'₹499',t:['dusky'],o:['all','date','party'],m:83,why:'Mysterious depth for evening',liner:'#481028',gloss:'#801848'},
+  {n:'Black Cherry',c:'#480818',f:'Matte',p:'₹549',t:['deep'],o:['all','bridal','party','date'],m:97,why:'Dark jewel tone — breathtaking on deep skin',liner:'#300410',gloss:'#680A20'},
+  {n:'Merlot Magic',c:'#600A20',f:'Matte',p:'₹499',t:['deep'],o:['all','bridal','date'],m:94,why:'Rich merlot creates luxurious depth',liner:'#400818',gloss:'#801028'},
+  {n:'Deep Plum',c:'#381428',f:'Satin',p:'₹549',t:['deep'],o:['all','party','date'],m:88,why:'Plum satin for editorial richness',liner:'#280C1C',gloss:'#581838'},
+  {n:'Velvet Grape',c:'#501870',f:'Matte',p:'₹399',t:['deep'],o:['all','party','bridal'],m:85,why:'Deep grape for show-stopping contrast',liner:'#381058',gloss:'#702090'},
+  {n:'Raisin Royale',c:'#401830',f:'Matte',p:'₹499',t:['deep'],o:['all','date','office'],m:81,why:'Dark raisin for editorial elegance',liner:'#281020',gloss:'#582040'},
+  {n:'Royal Berry',c:'#8B1A4A',f:'Matte',p:'₹399',t:['deep'],o:['all','party','date'],m:78,why:'Berry-wine with incredible depth',liner:'#6A1038',gloss:'#AC2060'},
+];
+const INS={
+  'fair-all':'Fair skin with cool undertones shines in rosy pinks, berries & cool reds.',
+  'fair-bridal':'Cool-toned berry or rose creates timeless bridal drama on fair skin.',
+  'fair-office':'Sheer roses and cool-toned nudes look most polished for office.',
+  'fair-party':'Bright berry or cool red pops without washing fair skin out.',
+  'fair-casual':'Gloss and satin pinks feel light and natural.',
+  'fair-date':'Cool roses and berry tones create the most flattering romantic look.',
+  'wheat-all':'Warm wheatish skin glows with terracotta, coral & brick red.',
+  'wheat-bridal':'Bold brick or warm red — terracotta-based shades photograph stunningly.',
+  'wheat-office':'Warm nudes project boardroom confidence on wheatish skin.',
+  'wheat-party':'Warm corals, bold bricks — brighter than you think, unmissable impact.',
+  'wheat-casual':'Glossy caramels and warm peach feel effortless.',
+  'wheat-date':'Copper satin or warm berry creates a romantically alluring look.',
+  'dusky-all':'Rich dusky skin is made for deep saturated shades — wine, plum, oxblood.',
+  'dusky-bridal':'Wine and oxblood for dusky bridal — royally beautiful.',
+  'dusky-office':'Warm spiced nudes and deeper mauves for refined professional looks.',
+  'dusky-party':'Plums, wines, dark berries look electric under party lighting.',
+  'dusky-casual':'Warm earthy glosses and soft mauves feel naturally rich.',
+  'dusky-date':'Wine or midnight rose — deeply romantic.',
+  'deep-all':'Deep skin is the ultimate canvas for jewel tones — black cherry, dark plum.',
+  'deep-bridal':'Black cherry or dark merlot — rich depth that gets more stunning all day.',
+  'deep-office':'Dark raisin and rich berries add sophistication.',
+  'deep-party':'Velvet grape, dark plum, black cherry look spectacular under lighting.',
+  'deep-casual':'Sheer inky berry feels effortless yet beautifully rich.',
+  'deep-date':'Merlot or deep plum — unforgettable.',
+};
+const PROFILES=[
+  {t:'Fair / Light',u:'Cool Undertone',d:'Light',f:'Satin',c:96,ins:'You have a fair skin tone with cool pink undertones. Rosy pinks, berries, and cool-toned reds complement you beautifully.',sh:[{c:'#E8A0B8',n:'Soft Pink Slip',p:96},{c:'#C87090',n:'Cotton Candy',p:93},{c:'#A84870',n:'Berry Whisper',p:89},{c:'#D890A8',n:'Mauve Dream',p:85},{c:'#F0C0A0',n:'Peachy Pout',p:80}]},
+  {t:'Wheatish / Medium',u:'Warm Undertone',d:'Medium',f:'Matte',c:95,ins:'You have a warm wheatish skin tone. Terracotta, coral, brick red, and warm caramel will enhance your natural glow.',sh:[{c:'#C05838',n:'Terracotta',p:95},{c:'#A84030',n:'Brick Lane',p:91},{c:'#B06030',n:'Copper Kiss',p:87},{c:'#C07840',n:'Warm Caramel',p:83},{c:'#A06068',n:'Mocha Rose',p:78}]},
+  {t:'Dusky / Olive',u:'Neutral Undertone',d:'Medium-Deep',f:'Matte',c:97,ins:'You have a rich dusky skin tone. Deep reds, plums, wine, and burgundy will make your lips look dramatically beautiful.',sh:[{c:'#801030',n:'Wine Not',p:97},{c:'#802040',n:'Plum Show',p:94},{c:'#601838',n:'Midnight Rose',p:90},{c:'#901030',n:'Oxblood Envy',p:86},{c:'#702048',n:'Deep Berry',p:81}]},
+  {t:'Deep / Dark',u:'Warm Undertone',d:'Deep',f:'Glossy',c:94,ins:'You have a beautiful deep skin tone. Rich jewel-toned shades — black cherry, deep plum, dark wine — look luxurious and bold.',sh:[{c:'#480818',n:'Black Cherry',p:94},{c:'#381428',n:'Deep Plum',p:91},{c:'#600A20',n:'Merlot Magic',p:88},{c:'#8B1A4A',n:'Royal Berry',p:84},{c:'#401830',n:'Raisin Royale',p:79}]},
+];
+const OUTFIT_COLORS = ['#1A1A2E','#E63946','#F4A261','#2A9D8F','#E9C46A','#264653','#C77DFF','#F72585','#4CC9F0','#7BF1A8','#FF9F1C','#FFFFFF'];
+const TONE_LABEL = {fair:'Fair',wheat:'Wheatish',dusky:'Dusky',deep:'Deep'};
+const OCC_LABEL = {all:'All occasions',bridal:'Bridal',office:'Office',party:'Party',casual:'Casual',date:'Date night'};
+
+let sortMode = 'match';
+
+/* ══════════════════════════════════════
+   REALISTIC LIPSTICK SVG GENERATOR
+   Renders a 3-D bullet with gold ferrule,
+   tube body, angled tip & specular highlights
+══════════════════════════════════════ */
+function lipstickSVG(hex, size=54){
+  // Derive shading colours from hex
+  function shade(h,amt){let r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);r=Math.max(0,Math.min(255,r+amt));g=Math.max(0,Math.min(255,g+amt));b=Math.max(0,Math.min(255,b+amt));return`#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;}
+  const light=shade(hex,45),dark=shade(hex,-55),mid=shade(hex,-20);
+  const uid='lg'+Math.random().toString(36).slice(2,7);
+  const w=size,h=Math.round(size*2.22);
+  return`<svg width="${w}" height="${h}" viewBox="0 0 54 120" xmlns="http://www.w3.org/2000/svg" class="sc-bullet">
+  <defs>
+    <linearGradient id="${uid}tube" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#2a2a2a"/>
+      <stop offset="30%" stop-color="#555"/>
+      <stop offset="55%" stop-color="#888"/>
+      <stop offset="80%" stop-color="#444"/>
+      <stop offset="100%" stop-color="#222"/>
+    </linearGradient>
+    <linearGradient id="${uid}ferr" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#8B6914"/>
+      <stop offset="25%" stop-color="#D4A017"/>
+      <stop offset="50%" stop-color="#F5C842"/>
+      <stop offset="75%" stop-color="#C9950C"/>
+      <stop offset="100%" stop-color="#7A5C10"/>
+    </linearGradient>
+    <linearGradient id="${uid}bullet" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="${dark}"/>
+      <stop offset="28%" stop-color="${mid}"/>
+      <stop offset="55%" stop-color="${light}"/>
+      <stop offset="78%" stop-color="${mid}"/>
+      <stop offset="100%" stop-color="${dark}"/>
+    </linearGradient>
+    <linearGradient id="${uid}tip" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="${dark}"/>
+      <stop offset="40%" stop-color="${hex}"/>
+      <stop offset="100%" stop-color="${light}"/>
+    </linearGradient>
+    <filter id="${uid}glow"><feGaussianBlur stdDeviation="1.5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <!-- TUBE BODY -->
+  <rect x="11" y="68" width="32" height="48" rx="4" fill="url(#${uid}tube)"/>
+  <!-- Tube side sheen -->
+  <rect x="14" y="70" width="4" height="44" rx="2" fill="rgba(255,255,255,0.06)"/>
+  <!-- Bottom cap -->
+  <rect x="11" y="110" width="32" height="8" rx="4" fill="#1a1a1a"/>
+  <rect x="13" y="112" width="28" height="4" rx="2" fill="#333"/>
+  <!-- GOLD FERRULE -->
+  <rect x="10" y="62" width="34" height="10" rx="2" fill="url(#${uid}ferr)"/>
+  <!-- Ferrule engraving lines -->
+  <line x1="10" y1="65" x2="44" y2="65" stroke="rgba(0,0,0,0.3)" stroke-width="0.5"/>
+  <line x1="10" y1="69" x2="44" y2="69" stroke="rgba(0,0,0,0.3)" stroke-width="0.5"/>
+  <rect x="14" y="63" width="26" height="6" rx="1" fill="rgba(255,255,255,0.08)"/>
+  <!-- BULLET BODY (cylinder) -->
+  <rect x="12" y="36" width="30" height="27" fill="url(#${uid}bullet)"/>
+  <!-- Bullet bottom edge -->
+  <ellipse cx="27" cy="63" rx="15" ry="2.5" fill="${dark}"/>
+  <!-- ANGLED TIP -->
+  <path d="M12 36 L42 36 L38 18 Q35 8 27 6 Q19 8 16 18 Z" fill="url(#${uid}tip)"/>
+  <!-- Tip dark edge -->
+  <path d="M12 36 L16 18 Q19 8 27 6" fill="none" stroke="${dark}" stroke-width="1"/>
+  <!-- SPECULAR HIGHLIGHTS on bullet -->
+  <rect x="20" y="22" width="4" height="38" rx="2" fill="rgba(255,255,255,0.22)" filter="url(#${uid}glow)"/>
+  <rect x="26" y="28" width="2" height="30" rx="1" fill="rgba(255,255,255,0.09)"/>
+  <!-- Tip specular -->
+  <path d="M22 30 Q24 12 27 7" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <!-- Bottom rim highlight -->
+  <rect x="11" y="68" width="32" height="2" rx="1" fill="rgba(255,255,255,0.06)"/>
+</svg>`;
+}
+
+/* ── SHADE FINDER ── */
+function setSkin(tone, btn){
+  MEM.skinTone = tone;
+  document.querySelectorAll('.skin-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const key = `${tone}-${MEM.occasion}`;
+  document.getElementById('insightBar').textContent = INS[key]||INS[`${tone}-all`]||'';
+  renderGrid(); updateContextPanel(); MEM.save();
+}
+function setOcc(occ, btn){
+  MEM.occasion = occ;
+  document.querySelectorAll('.occ-btn[data-occ]').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const key = `${MEM.skinTone}-${occ}`;
+  document.getElementById('insightBar').textContent = INS[key]||INS[`${MEM.skinTone}-all`]||'';
+  renderGrid(); updateContextPanel(); MEM.save();
+}
+function sortGrid(mode, btn){
+  sortMode = mode;
+  document.querySelectorAll('.grid-header .occ-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderGrid();
+}
+function renderGrid(){
+  const tone = MEM.skinTone, occ = MEM.occasion;
+  let items = SHADES.filter(s=>s.t.includes(tone)&&(occ==='all'||s.o.includes(occ)));
+  // Apply quiz boost
+  if(MEM.quizAnswers.finish){
+    items = items.map(s=>({...s, m: s.f.toLowerCase()===MEM.quizAnswers.finish.toLowerCase()?Math.min(100,s.m+4):s.m-2}));
+  }
+  if(sortMode==='price') items = [...items].sort((a,b)=>parseInt(a.p.replace(/[^\d]/g,''))-parseInt(b.p.replace(/[^\d]/g,'')));
+  else items = [...items].sort((a,b)=>b.m-a.m);
+  document.getElementById('gridCount').textContent = `${items.length} shades`;
+  const g = document.getElementById('shadeGrid');
+  g.innerHTML = items.map((s,i)=>{
+    const isTop = i===0, isSel = MEM.selectedShade?.n===s.n;
+    return`<div class="sc${isTop?' top-pick':''}${isSel?' selected':''}" onclick="applyShade(${JSON.stringify(s).replace(/"/g,'&quot;')},true)" style="animation:fadeUp 0.3s ease ${i*0.03}s both;">
+      <div class="sc-swatch">${lipstickSVG(s.c)}<div class="sc-pct">${s.m}%</div></div>
+      <div class="sc-body"><div class="sc-name">${s.n}</div><div class="sc-finish">${s.f}</div><div class="sc-price">${s.p}</div></div>
+      <button class="sc-apply">👄 Try On</button>
+    </div>`;
+  }).join('');
+}
+function applyShade(s, scrollToTryOn){
+  MEM.selectedShade = s;
+  // Update Before/After
+  document.getElementById('baLip').setAttribute('fill', s.c);
+  document.getElementById('baAfterLabel').textContent = s.n;
+  document.getElementById('siName').textContent = s.n;
+  document.getElementById('siMeta').textContent = `${s.f} · ${s.p}`;
+  document.getElementById('siWhy').textContent = s.why;
+  // Update hero lip
+  document.getElementById('heroLipLower').setAttribute('fill', s.c);
+  document.getElementById('heroLipUpper').setAttribute('fill', hexToRgba(s.c,0.85));
+  document.getElementById('heroTag1').querySelector('.ftag-dot').style.background=s.c;
+  document.getElementById('heroTag1').childNodes[1].textContent=` ${s.n}`;
+  // Compare strip
+  addToCompare(s.c);
+  // Companions
+  renderCompanions(s);
+  // Re-render grid to mark selected
+  renderGrid();
+  // Context panel
+  updateContextPanel();
+  // Gloss/matte visual
+  applyFinishVisual(MEM.finish);
+  MEM.save();
+  if(scrollToTryOn) scrollTo('#tryon');
+  toast(`💄 ${s.n} applied to Try-On!`);
+}
+
+/* ── FINISH TOGGLE ── */
+function setFinish(f){
+  MEM.finish = f;
+  ['Matte','Gloss','Satin'].forEach(n=>{
+    const el = document.getElementById(`ft${n}`);
+    if(el) el.classList.toggle('active',n.toLowerCase()===f);
+  });
+  applyFinishVisual(f);
+  updateContextPanel();
+  MEM.save();
+}
+function applyFinishVisual(f){
+  const g1=document.getElementById('baGloss1'),g2=document.getElementById('baGloss2');
+  if(f==='matte'){g1.setAttribute('opacity','0');g2.setAttribute('opacity','0');}
+  else if(f==='gloss'){g1.setAttribute('opacity','0.8');g2.setAttribute('opacity','0.6');}
+  else{g1.setAttribute('opacity','0.4');g2.setAttribute('opacity','0.3');}
+  // Hero too
+  document.getElementById('heroGloss1').setAttribute('opacity', f==='matte'?'0':f==='gloss'?'0.7':'0.4');
+  document.getElementById('heroGloss2').setAttribute('opacity', f==='matte'?'0':f==='gloss'?'0.5':'0.3');
+}
+
+/* ── COMPARE STRIP ── */
+let compareColors = [];
+function addToCompare(color){
+  if(compareColors.includes(color)) return;
+  compareColors.push(color);if(compareColors.length>6)compareColors.shift();
+  const strip = document.getElementById('compareStrip');
+  strip.innerHTML = compareColors.map(c=>`<div style="cursor:pointer;transition:transform 0.2s;flex-shrink:0;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.4))${c===MEM.selectedShade?.c?';transform:scale(1.2)':''}" title="Click to compare" onclick="applyShade(SHADES.find(s=>s.c==='${c}')||{n:'Shade',c:'${c}',f:'Matte',p:'',why:'',t:['all'],o:['all'],m:80,liner:'#802040',gloss:'#D08050'},false)">${lipstickSVG(c,22)}</div>`).join('');
+}
+
+/* ── COMPANIONS ── */
+function renderCompanions(s){
+  const linerC = s.liner||'#802040', glossC = s.gloss||'#D08050';
+  const items = document.getElementById('companionItems');
+  items.innerHTML=`
+    <div class="comp-item${MEM.selectedLiner?'.applied':''}" id="linComp" onclick="applyLiner('${linerC}','Matching Liner')">
+      <div class="comp-dot" style="background:${linerC}"></div>
+      <div class="comp-info"><div class="comp-name">Matching Lipliner</div><div class="comp-type">Define & extend shape</div></div>
+      <span class="comp-check">✓</span>
+    </div>
+    <div class="comp-item" id="glossComp" onclick="applyGloss('${glossC}','Coordinated Gloss')">
+      <div class="comp-dot" style="background:${glossC}"></div>
+      <div class="comp-info"><div class="comp-name">Coordinated Gloss</div><div class="comp-type">Add shine & plumpness</div></div>
+      <span class="comp-check">✓</span>
+    </div>
+  `;
+}
+function applyLiner(c, name){
+  MEM.selectedLiner = {n:name,c};
+  document.getElementById('baLiner').setAttribute('stroke',c);
+  document.getElementById('baLiner').setAttribute('fill',hexToRgba(c,0.25));
+  document.getElementById('heroLiner').setAttribute('stroke',c);
+  document.getElementById('heroLiner').setAttribute('fill','none');
+  document.getElementById('linComp').classList.add('applied');
+  toast(`✏️ Lipliner applied!`);
+}
+function applyGloss(c, name){
+  MEM.selectedGloss = {n:name,c};
+  setFinish('gloss'); document.getElementById('ftGloss').classList.add('active');
+  document.getElementById('glossComp')?.classList.add('applied');
+  toast(`✨ Gloss applied!`);
+}
+
+/* ── COMPLETE LOOK ── */
+function completeLook(){
+  if(!MEM.selectedShade){toast('💄 First select a shade!');return;}
+  const s = MEM.selectedShade;
+  const liner = s.liner||'#802040';
+  const gloss = s.gloss||'#D08050';
+  // Apply all layers
+  applyLiner(liner,'Matching Lipliner');
+  applyGloss(gloss,'Coordinated Gloss');
+  MEM.selectedGloss = {n:'Coordinated Gloss',c:gloss};
+  // Show result
+  const cr = document.getElementById('completeResult');cr.style.display='block';
+  document.getElementById('crLayers').innerHTML=`
+    <div class="cr-layer"><div class="cr-dot" style="background:${liner}"></div>Lipliner: Matching Liner</div>
+    <div class="cr-layer"><div class="cr-dot" style="background:${s.c}"></div>Lipstick: ${s.n}</div>
+    <div class="cr-layer"><div class="cr-dot" style="background:${gloss}"></div>Gloss: Coordinated Gloss</div>
+    <div class="cr-layer" style="color:rgba(255,255,255,0.3);font-size:0.7rem;padding-top:0.3rem;">Finish: ${MEM.finish.charAt(0).toUpperCase()+MEM.finish.slice(1)}</div>
+  `;
+  toast('✨ Complete look applied!');
+}
+
+/* ── SAVE LOOK ── */
+function saveLook(){
+  if(!MEM.selectedShade){toast('Select a shade first!');return;}
+  const look = {
+    shade: MEM.selectedShade,
+    liner: MEM.selectedLiner,
+    gloss: MEM.selectedGloss,
+    finish: MEM.finish,
+    tone: MEM.skinTone,
+    occasion: MEM.occasion,
+    date: new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short'})
+  };
+  MEM.savedLooks.unshift(look);
+  if(MEM.savedLooks.length>12) MEM.savedLooks.pop();
+  MEM.save(); renderMemory();
+  toast(`💾 Look saved!`);
+}
+
+/* ── MEMORY ── */
+function renderMemory(){
+  const grid = document.getElementById('memGrid');
+  if(!MEM.savedLooks.length){
+    grid.innerHTML='<div class="mem-empty"><div class="mem-empty-icon">💄</div><div>Save your first look above!</div></div>';
+    return;
+  }
+  grid.innerHTML = MEM.savedLooks.map((lk,i)=>`
+    <div class="mem-card">
+      <div class="mem-card-swatch" style="display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 40% 30%,#FFF0F5 0%,#F5E0E8 100%);">${lipstickSVG(lk.shade.c,42)}</div>
+      <div class="mem-date">${lk.date} · ${TONE_LABEL[lk.tone]||lk.tone}</div>
+      <div class="mem-shade-name">${lk.shade.n}</div>
+      <div class="mem-meta">${lk.finish} · ${OCC_LABEL[lk.occasion]||lk.occasion}</div>
+      <button class="mem-apply" onclick="restoreLook(${i})">Apply →</button>
+    </div>
+  `).join('');
+  // Update nav label
+  document.getElementById('memNavLabel').textContent = `${MEM.savedLooks.length} Looks`;
+}
+function restoreLook(i){
+  const lk = MEM.savedLooks[i];
+  setSkin(lk.tone, document.querySelector(`[data-tone="${lk.tone}"]`));
+  applyShade(lk.shade, true);
+  if(lk.liner) applyLiner(lk.liner.c, lk.liner.n);
+  if(lk.gloss) applyGloss(lk.gloss.c, lk.gloss.n);
+  setFinish(lk.finish||'matte');
+  toast(`✨ "${lk.shade.n}" restored!`);
+}
+function restoreMemory(){
+  if(MEM.savedLooks.length) restoreLook(0);
+}
+
+/* ── WELCOME BACK BANNER ── */
+function initWelcomeBack(){
+  if(MEM.savedLooks.length&&MEM.selectedShade){
+    const s = MEM.selectedShade;
+    const b = document.getElementById('memBanner');
+    b.style.display='flex';
+    document.getElementById('mbText').innerHTML=`Welcome back! Your last shade was <strong>${s.n}</strong>`;
+    document.getElementById('mbSwatch').style.background=s.c;
+    document.getElementById('mbShadeName').textContent=s.n;
+    // hero welcome
+    const hw = document.getElementById('heroWelcome');
+    hw.style.display='block';
+    hw.innerHTML=`Welcome back ✦ Your shade: <strong>${s.n}</strong>`;
+  }
+  if(MEM.selectedShade) applyShade(MEM.selectedShade, false);
+  if(MEM.skinTone){
+    const btn = document.querySelector(`[data-tone="${MEM.skinTone}"]`);
+    if(btn) setSkin(MEM.skinTone, btn);
+  }
+  setFinish(MEM.finish||'matte');
+  renderMemory();
+}
+
+/* ── QUIZ ── */
+const QD=[
+  {q:'Skin tone?',h:'Pick the closest match',opts:[{l:'Fair / Light',c:'#F5D5C0',key:'fair'},{l:'Wheatish / Medium',c:'#D4A574',key:'wheat'},{l:'Dusky / Olive',c:'#A0724A',key:'dusky'},{l:'Deep / Dark',c:'#5A3520',key:'deep'}]},
+  {q:'Undertone?',h:'Look at veins on your wrist',opts:[{l:'Cool — blue/purple',c:'#B0A0D0',key:'cool'},{l:'Warm — green',c:'#D0B060',key:'warm'},{l:'Neutral — mix',c:'#C0A090',key:'neutral'},{l:"I'm not sure",c:'#E0D0C0',key:'neutral'}]},
+  {q:'Preferred finish?',h:'How do you want your lips?',opts:[{l:'Matte',c:'#A06060',key:'matte'},{l:'Glossy',c:'#F0C0A0',key:'glossy'},{l:'Satin',c:'#D09090',key:'satin'},{l:'Sheer',c:'#E8C0B0',key:'sheer'}]},
+  {q:'Occasion?',h:'Your primary use',opts:[{l:'💍 Bridal',c:'#C0003A',key:'bridal'},{l:'💼 Office',c:'#A06068',key:'office'},{l:'🎉 Party',c:'#8B1A4A',key:'party'},{l:'☀️ Casual',c:'#E8A080',key:'casual'}]},
+];
+let qStep=0,qAnsBuf={};
+let quizOpen=false;
+function toggleQuiz(){
+  quizOpen=!quizOpen;
+  const p=document.getElementById('quizPanel');
+  p.classList.toggle('open',quizOpen);
+  if(quizOpen){qStep=0;qAnsBuf={};renderQ();}
+}
+function renderQ(){
+  const d=QD[qStep];
+  const prog=document.getElementById('qpProg');
+  prog.innerHTML=QD.map((_,i)=>`<div class="qp-pd${i<qStep?' done':i===qStep?' active':''}"></div>`).join('');
+  document.getElementById('qpBack').style.visibility=qStep>0?'visible':'hidden';
+  document.getElementById('qpStep').textContent=`${qStep+1} of ${QD.length}`;
+  const sel=qAnsBuf[qStep];
+  document.getElementById('qpBody').innerHTML=`<div class="qp-q">${d.q}</div><div class="qp-hint">${d.h}</div><div class="qp-opts">${d.opts.map((o,i)=>`<button class="qp-opt${sel===i?' sel':''}" onclick="qSel(${i},this)"><div class="qp-odot" style="background:${o.c}"></div>${o.l}</button>`).join('')}</div>`;
+}
+function qSel(i, btn){
+  qAnsBuf[qStep]=i;
+  const opt = QD[qStep].opts[i];
+  document.querySelectorAll('.qp-opt').forEach((b,j)=>b.classList.toggle('sel',j===i));
+  setTimeout(()=>{
+    if(qStep<QD.length-1){qStep++;renderQ();}
+    else applyQuizResults();
+  },280);
+}
+function qBack(){if(qStep>0){qStep--;renderQ();}}
+function applyQuizResults(){
+  // Apply quiz answers to global memory
+  QD.forEach((d,i)=>{
+    const ans = qAnsBuf[i];if(ans===undefined)return;
+    const key=d.opts[ans].key;
+    if(i===0){MEM.skinTone=key;const btn=document.querySelector(`[data-tone="${key}"]`);if(btn)setSkin(key,btn);}
+    if(i===1)MEM.undertone=key;
+    if(i===2){MEM.quizAnswers.finish=key;setFinish(key==='glossy'?'gloss':key==='sheer'?'matte':key);}
+    if(i===3){MEM.occasion=key;const btn=document.querySelector(`[data-occ="${key}"]`);if(btn)setOcc(key,btn);}
+  });
+  MEM.save();
+  renderGrid(); updateContextPanel();
+  toggleQuiz();
+  toast('✓ Quiz applied — results refined!');
+}
+
+/* ── CONTEXT PANEL (Step 3) ── */
+function updateContextPanel(){
+  document.getElementById('ctxTone').textContent = TONE_LABEL[MEM.skinTone]||'—';
+  document.getElementById('ctxUndertone').textContent = MEM.undertone||'—';
+  if(MEM.selectedShade){
+    document.getElementById('ctxSwatch').style.background=MEM.selectedShade.c;
+    document.getElementById('ctxShadeName').textContent=MEM.selectedShade.n;
+  }
+  document.getElementById('ctxFinish').textContent = MEM.finish.charAt(0).toUpperCase()+MEM.finish.slice(1);
+  document.getElementById('ctxOcc').textContent = OCC_LABEL[MEM.occasion]||'—';
+  document.getElementById('ctxOutfit').textContent = MEM.outfitDesc||'Not set';
+  // Update quick chips contextually
+  const s = MEM.selectedShade;
+  if(s){
+    const chips = document.getElementById('chatChips');
+    chips.innerHTML=`
+      <button class="chip" onclick="sendChip(this)">Best lipliner for ${s.n}?</button>
+      <button class="chip" onclick="sendChip(this)">Add gloss on top of ${s.n}?</button>
+      <button class="chip" onclick="sendChip(this)">Match a black dress with ${s.n}?</button>
+      <button class="chip" onclick="sendChip(this)">Bridal look with ${s.n}</button>
+    `;
+  }
+}
+
+/* ── OUTFIT PALETTE ── */
+function buildOutfitPalette(){
+  const p = document.getElementById('outfitPalette');
+  p.innerHTML = OUTFIT_COLORS.map(c=>`<div class="color-swatch-pick${MEM.outfitColor===c?' selected':''}" style="background:${c}" onclick="pickOutfitColor('${c}')"></div>`).join('');
+}
+function pickOutfitColor(c){
+  MEM.outfitColor = c;
+  MEM.outfitDesc = `Outfit colour: ${c}`;
+  document.querySelectorAll('.color-swatch-pick').forEach(el=>el.classList.toggle('selected',el.style.background===c||el.style.backgroundColor===c));
+  // Generate recommendation
+  const res = document.getElementById('outfitResult');
+  res.style.display='block';
+  const shades = SHADES.filter(s=>s.t.includes(MEM.skinTone)).sort((a,b)=>b.m-a.m).slice(0,3);
+  res.innerHTML=`<div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin:0.8rem 0 0.5rem;">Shades for this outfit</div>${shades.map(s=>`<div style="display:flex;align-items:center;gap:0.75rem;padding:0.5rem 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="applyShade(${JSON.stringify(s).replace(/"/g,'&quot;')},false)"><div style="filter:drop-shadow(0 2px 8px rgba(0,0,0,0.15));flex-shrink:0;">${lipstickSVG(s.c,26)}</div><div style="flex:1;font-size:0.75rem;font-weight:600;color:var(--ink);">${s.n}</div><div style="font-size:0.65rem;color:var(--muted);">${s.m}%</div></div>`).join('')}`;
+  updateContextPanel(); MEM.save();
+}
+buildOutfitPalette();
+
+/* ── CHAT ── */
+let pendImg=null,pendType=null;
+function handleOutfitFile(ev){
+  const f=ev.target.files[0];if(!f)return;
+  const r=new FileReader();r.onload=e=>{
+    const url=e.target.result;pendImg=url.split(',')[1];pendType=f.type;
+    const thumb=document.getElementById('chatImgThumb');thumb.src=url;
+    document.getElementById('chatImgPreview').style.display='flex';
+    document.getElementById('chatInput').value='Analyse my outfit and suggest matching shades with lipliner and gloss pairings.';
+    MEM.outfitDesc='Outfit photo uploaded'; MEM.outfitColor=null; updateContextPanel(); MEM.save();
+  };r.readAsDataURL(f);ev.target.value='';
+}
+function analyseOutfit(ev){handleOutfitFile(ev);}
+function clearChatImg(){pendImg=null;pendType=null;document.getElementById('chatImgPreview').style.display='none';document.getElementById('chatInput').value='';}
+
+const CHAT_RULES=[
+  {m:['lipliner','liner'],r:(s)=>`For **${s?.n||'this shade'}**: ✏️\n\n• **Match exactly**: lipliner in same shade = natural\n• **Deeper tone**: 1 shade deeper = more definition\n• **Fill entire lip**: liner base = 2× longer wear\n\n${s?.liner?`I'd suggest lining with ${s.liner} then filling the entire lip with liner before your lipstick. This makes it last 8+ hours!`:''}`,pills:(s)=>s?[{n:'Deeper Liner',c:s.liner||s.c},{n:'Match Liner',c:s.c}]:[]},
+  {m:['gloss','add gloss'],r:(s)=>`Gloss over **${s?.n||'your lipstick'}**: ✨\n\n• Dab gloss on **centre only** for plumping effect\n• Full coverage gloss = more casual\n• Clear gloss on top = shine without changing colour\n\n${s?.gloss?`For ${s.n}, I'd use a ${s.gloss} gloss — it enhances the depth without overpowering.`:''}`,pills:(s)=>s?[{n:'Clear Gloss',c:'#F8E8E0'},{n:'Tinted Gloss',c:s?.gloss||'#D08050'}]:[]},
+  {m:['black dress','black outfit'],r:(s)=>`With a **black dress**: 🖤\n\n• **Bold red** (${s?.t?.includes('fair')?'or berry':'wine/oxblood'}) = classic, iconic\n• **Nude** = modern, editorial\n• **Dark plum or wine** = sophisticated evening\n\nFor your ${TONE_LABEL[MEM.skinTone]} skin:\n${SHADES.filter(x=>x.t.includes(MEM.skinTone)).sort((a,b)=>b.m-a.m).slice(0,3).map(x=>`💄 **${x.n}** (${x.p})`).join('\n')}`,pills:(s)=>[]},
+  {m:['bridal','wedding'],r:(s)=>`Bridal lips that last all day: 👰\n\n1. **Exfoliate** lips the night before\n2. Apply **lipliner as base** — fill entire lip\n3. Apply **lipstick**, blot with tissue\n4. Apply **2nd coat**, set with translucent powder\n5. Add gloss only to centre for dimension\n\nFor ${TONE_LABEL[MEM.skinTone]} skin, I recommend: **${SHADES.filter(x=>x.t.includes(MEM.skinTone)&&x.o.includes('bridal')).sort((a,b)=>b.m-a.m)[0]?.n||'Wine Not'}**`,pills:()=>[]},
+  {m:['red saree','saree','ethnic'],r:(s)=>`For ethnic / saree looks: 🥻\n\n• Red saree → **Oxblood or Wine** (not bright red — too much clash)\n• Pink lehenga → **Berry or Plum**\n• Yellow/gold → **Terracotta or Warm Caramel**\n• Green → **Wine Not or Brick Lane**\n\nFor ${TONE_LABEL[MEM.skinTone]} skin, my top pick: **${SHADES.filter(x=>x.t.includes(MEM.skinTone)).sort((a,b)=>b.m-a.m)[0]?.n}**`,pills:()=>[]},
+];
+function smartReply(msg){
+  const l=msg.toLowerCase(),s=MEM.selectedShade;
+  for(const rule of CHAT_RULES) if(rule.m.some(k=>l.includes(k))) return{r:rule.r(s),pills:rule.pills(s)};
+  if(l.length<12||/^(hi|hello|hey|help)/i.test(l)) return{r:`Hey! 💄 I already know your profile:\n• **Skin**: ${TONE_LABEL[MEM.skinTone]}\n• **Active shade**: ${s?.n||'none selected'}\n• **Finish**: ${MEM.finish}\n\nAsk me:\n→ Best lipliner pairing\n→ Add gloss?\n→ Match an outfit\n→ Bridal tips`,pills:[]};
+  return{r:`For **${s?.n||'your look'}** on ${TONE_LABEL[MEM.skinTone]} skin:\n\n${s?`1. **Liner**: Use ${s.liner?`a liner in ${s.liner}`:'a slightly deeper shade'}\n2. **Application**: Fill entire lip with liner first, then layer lipstick\n3. **Finish**: ${MEM.finish} works perfectly\n\nWant me to be more specific? Tell me the occasion!`:'First select a shade from Step 1 so I can give you a personalised recommendation!'}`,pills:[]};
+}
+const SYS=`You are ShadeMatch AI, a warm expert lipstick advisor. You ALREADY KNOW the user's profile: Skin tone: ${()=>TONE_LABEL[MEM.skinTone]}, Active shade: ${()=>MEM.selectedShade?.n||'none'}, Finish: ${()=>MEM.finish}. Focus on lipliner pairings, lipgloss recommendations, outfit matching, and bridal tips. Always reference their specific skin tone and current shade. Under 120 words. Bold shade names. 1 emoji.`;
+async function sendChat(){
+  const inp=document.getElementById('chatInput'),msg=inp.value.trim();if(!msg&&!pendImg)return;
+  const w=document.getElementById('chatMsgs'),now=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  const ib=pendImg,it=pendType||'image/jpeg';
+  const uel=document.createElement('div');uel.className='msg msg-user';
+  uel.innerHTML=ib?`<div class="mb"><img src="data:${it};base64,${ib}" style="width:90px;height:60px;object-fit:cover;border-radius:8px;margin-bottom:0.3rem;display:block;"/>${msg?'<br>'+fmt(msg):''}</div><div class="mt">${now}</div>`:`<div class="mb">${fmt(msg)}</div><div class="mt">${now}</div>`;
+  w.appendChild(uel);w.scrollTop=w.scrollHeight;
+  inp.value='';document.getElementById('chatSendBtn').disabled=true;clearChatImg();
+  const tel=addTyping();
+  const s=MEM.selectedShade;
+  const sys=`You are ShadeMatch AI, a warm expert lipstick advisor. You ALREADY KNOW the user's profile — Skin tone: ${TONE_LABEL[MEM.skinTone]||'unknown'}, Active shade: ${s?.n||'none selected'}, Finish: ${MEM.finish}, Occasion: ${OCC_LABEL[MEM.occasion]||'any'}, Outfit: ${MEM.outfitDesc||'not set'}. Focus on lipliner pairings, lipgloss recommendations, outfit matching, and bridal tips. Always reference their specific profile. Under 120 words. Bold product names with **. 1-2 emojis.`;
+  try{
+    const cnt=ib?[{type:'image',source:{type:'base64',media_type:it,data:ib}},{type:'text',text:msg||'Analyse this outfit/photo for lipstick recommendations.'}]:msg;
+    const res=await Promise.race([fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:280,system:sys,messages:[{role:'user',content:cnt}]})}),new Promise((_,rej)=>setTimeout(()=>rej('timeout'),8000))]);
+    const d=await res.json();const t=d.content?.map(c=>c.text||'').join('')||'';
+    if(t){await delay(600);tel.remove();addMsg(fmt(t),'ai');}else throw 0;
+  }catch{
+    await delay(700);tel.remove();
+    const sr=smartReply(msg);
+    const el=addMsg(fmt(sr.r),'ai');
+    if(sr.pills?.length){const pr=document.createElement('div');pr.className='shade-pills';pr.innerHTML=sr.pills.map(p=>`<div class="shade-pill" onclick="document.getElementById('chatInput').value='Tell me more about ${p.n}';sendChat()"><div class="sp-dot" style="background:${p.c}"></div>${p.n}</div>`).join('');el.querySelector('.mb').appendChild(pr);}
+  }
+  document.getElementById('chatSendBtn').disabled=false;
+}
+function sendChip(btn){document.getElementById('chatInput').value=btn.textContent;sendChat();}
+function addMsg(html,role){const w=document.getElementById('chatMsgs'),now=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});const el=document.createElement('div');el.className=`msg msg-${role}`;el.innerHTML=`<div class="mb">${html}</div><div class="mt">${now}</div>`;w.appendChild(el);w.scrollTop=w.scrollHeight;return el;}
+function addTyping(){const w=document.getElementById('chatMsgs');const el=document.createElement('div');el.className='msg msg-ai';el.innerHTML='<div class="tbub"><span></span><span></span><span></span></div>';w.appendChild(el);w.scrollTop=w.scrollHeight;return el;}
+
+/* ── FACE ANALYSIS ── */
+let azDone=false;
+function setAzStep(n){['azS1','azS2','azS3'].forEach((id,i)=>{const el=document.getElementById(id);el.classList.remove('active','done');if(i<n-1)el.classList.add('done');if(i===n-1)el.classList.add('active');});}
+function runDemo(){
+  if(azDone)return;azDone=true;
+  const ov=document.getElementById('scanOv'),txt=document.getElementById('scanTxt'),fill=document.getElementById('scanFill');
+  setAzStep(2);ov.classList.add('show');
+  [{t:0,p:8,m:'🔍 Detecting skin tone…'},{t:700,p:28,m:'🎨 Analysing undertone…'},{t:1400,p:50,m:'💋 Reading lip pigmentation…'},{t:2100,p:70,m:'🧬 Matching shades…'},{t:2800,p:90,m:'📊 Calculating match scores…'},{t:3400,p:100,m:'✅ Match found!'}].forEach(s=>setTimeout(()=>{txt.style.opacity='0';setTimeout(()=>{txt.textContent=s.m;txt.style.opacity='1';},180);fill.style.width=s.p+'%';},s.t));
+  const pr=PROFILES[['fair','wheat','dusky','deep'].indexOf(MEM.skinTone)]||PROFILES[0];
+  MEM.analysisProfile=pr;
+  setTimeout(()=>{
+    ov.classList.remove('show');setAzStep(3);
+    document.getElementById('ubIcon').textContent='✅';document.getElementById('ubTitle').textContent='Analysis Complete!';
+    document.getElementById('azPct').textContent=pr.c+'%';
+    document.getElementById('azInsight').textContent=pr.ins;
+    document.getElementById('azTone').textContent=pr.t;
+    document.getElementById('azUndertone').textContent=pr.u;
+    document.getElementById('azDepth').textContent=pr.d;
+    document.getElementById('azFinish').textContent=pr.f;
+    document.getElementById('azShades').innerHTML=pr.sh.map((s,i)=>`<div class="az-shade${i===0?' top':''}" onclick="applyFromAnalysis('${s.n}','${s.c}')"><div class="az-sw" style="background:${s.c};"></div><div class="az-sn">${s.n}</div><div class="az-sp">${s.p}%</div><div class="az-bar"><div class="az-fill" data-p="${s.p}" style="width:0%"></div></div></div>`).join('');
+    const res=document.getElementById('azResult');res.style.display='block';res.style.opacity='0';res.style.transform='translateY(16px)';res.style.transition='all 0.5s ease';
+    setTimeout(()=>{res.style.opacity='1';res.style.transform='none';},50);
+    setTimeout(()=>{document.querySelectorAll('.az-fill').forEach((el,i)=>setTimeout(()=>{el.style.width=el.dataset.p+'%';},i*130));},350);
+    // Update skin tone from analysis
+    MEM.skinTone = ['fair','wheat','dusky','deep'][PROFILES.indexOf(pr)]||MEM.skinTone;
+    MEM.undertone = pr.u; MEM.save(); updateContextPanel();
+  },3900);
+}
+function applyFromAnalysis(name, color){
+  const s=SHADES.find(x=>x.n===name)||{n:name,c:color,f:'Matte',p:'',why:'AI matched for your skin tone',t:['all'],o:['all'],m:95,liner:'#802040',gloss:'#D08050'};
+  applyShade(s,true);
+  toast(`💄 ${name} sent to Try-On!`);
+}
+function applyTopAnalysisShade(){
+  const pr=MEM.analysisProfile;if(pr&&pr.sh.length) applyFromAnalysis(pr.sh[0].n,pr.sh[0].c);
+}
+function chatAboutAnalysis(){
+  const pr=MEM.analysisProfile;
+  if(pr){scrollTo('#advisor');setTimeout(()=>{document.getElementById('chatInput').value=`My skin tone is ${pr.t} (${pr.u}). Top match is ${pr.sh[0]?.n}. What lipliner and gloss would complete this for a bridal look?`;sendChat();},600);}
+}
+
+/* ── INIT ── */
+function init(){
+  renderGrid();
+  // Default first shade
+  if(!MEM.selectedShade){
+    const def=SHADES.find(s=>s.t.includes(MEM.skinTone))||SHADES[0];
+    applyShade(def,false);
+  } else {
+    applyShade(MEM.selectedShade,false);
+  }
+  renderCompanions(MEM.selectedShade||SHADES[0]);
+  applyFinishVisual(MEM.finish||'matte');
+  initWelcomeBack();
+  updateContextPanel();
+  // Insight bar
+  const key=`${MEM.skinTone}-${MEM.occasion}`;
+  document.getElementById('insightBar').textContent=INS[key]||INS[`${MEM.skinTone}-all`]||'';
+  // Slider
+  initSlider();
+}
+
+/* ── BA SLIDER ── */
+function initSlider(){
+  const box=document.getElementById('baBox'),div=document.getElementById('baDivider'),after=document.getElementById('baAfter');
+  let drag=false;
+  function move(pct){pct=Math.max(5,Math.min(95,pct));div.style.left=pct+'%';after.style.clipPath=`inset(0 ${100-pct}% 0 0)`;}
+  move(50);
+  div.addEventListener('mousedown',()=>drag=true);
+  div.addEventListener('touchstart',()=>drag=true,{passive:true});
+  document.addEventListener('mouseup',()=>drag=false);
+  document.addEventListener('touchend',()=>drag=false);
+  document.addEventListener('mousemove',e=>{if(!drag)return;const r=box.getBoundingClientRect();move(((e.clientX-r.left)/r.width)*100);});
+  document.addEventListener('touchmove',e=>{if(!drag)return;const r=box.getBoundingClientRect();move(((e.touches[0].clientX-r.left)/r.width)*100);},{passive:true});
+}
+
+init();
+</script>
+</body>
+</html>
